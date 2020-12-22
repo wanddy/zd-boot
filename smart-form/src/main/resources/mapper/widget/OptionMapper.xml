@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.widget.mapper.OptionMapper">
+	<resultMap type="smartform.widget.model.Option" id="optionMap">
+		<result property="value" column="option_value" />
+	</resultMap>
+
+	<select id="listForPage" resultMap="optionMap">
+		SELECT
+		`id`,
+		`source_id`,
+		`sort`,
+		`option_value`,
+		`label`,
+		`parent_id`,
+		`created_at`,
+		`modified_at`
+		FROM
+		stcsm_form_option
+		ORDER BY
+		id DESC
+	</select>
+
+	<insert id="batchSave">
+		INSERT INTO stcsm_form_option (
+		`id`,
+		`source_id`,
+		`sort`,
+		`option_value`,
+		`label`,
+		`parent_id`,
+		`created_at`,
+		`modified_at`
+		)
+		VALUES
+		<foreach collection="list" item="o" separator=",">
+			(
+			#{o.id},
+			#{o.sourceId},
+			<choose>
+				<when test="o.sort != null">
+					#{o.sort},
+				</when>
+				<otherwise>
+					0,
+				</otherwise>
+			</choose>
+			#{o.value},
+			#{o.label},
+            <choose>
+                <when test="o.parentId != null">
+                    #{o.parentId},
+                </when>
+                <otherwise>
+                    '',
+                </otherwise>
+            </choose>
+			#{o.createdAt},
+			#{o.modifiedAt}
+			)
+		</foreach>
+	</insert>
+
+	<insert id="save">
+		INSERT INTO stcsm_form_option (
+		`id`,
+		`source_id`,
+		<if test="sort != null">`sort`, </if>
+		`option_value`,
+		`label`,
+		<if test="parentId != null">`parent_id`, </if>
+		`created_at`,
+		`modified_at`
+		)
+		VALUES (
+		#{id},
+		#{sourceId},
+		<if test="sort != null">#{sort}, </if>
+		#{value},
+		#{label},
+		<if test="parentId != null">#{parentId}, </if>
+		#{createdAt},
+		#{modifiedAt}
+		)
+	</insert>
+
+	<select id="getObjectById" resultMap="optionMap">
+		SELECT
+		`id`,
+		`source_id`,
+		`sort`,
+		`option_value`,
+		`label`,
+		`parent_id`,
+		`created_at`,
+		`modified_at`
+		FROM
+		stcsm_form_option
+		WHERE
+		id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE stcsm_form_option
+		<set>
+			<if test="sourceId != null">`source_id` = #{sourceId}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="value != null">`option_value` = #{value}, </if>
+			<if test="label != null">`label` = #{label}, </if>
+			<if test="parentId != null">`parent_id` = #{parentId}, </if>
+			<if test="createdAt != null">`created_at` = #{createdAt}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		stcsm_form_option
+		WHERE
+		id IN
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

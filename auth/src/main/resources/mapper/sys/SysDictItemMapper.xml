@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="auth.domain.dict.mapper.SysDictItemMapper">
+
+    <select id="getPid" resultType="auth.entity.Category">
+        SELECT
+	id,
+  dict_id as pid,
+  item_value as `code`,
+  item_text as `name`	,
+	0 as has_child,
+	0 AS type
+FROM
+	sys_dict_item
+WHERE
+	dict_id = #{id}
+	AND status = 1
+ORDER BY
+	sort_order ASC,
+	item_value ASC
+    </select>
+</mapper>

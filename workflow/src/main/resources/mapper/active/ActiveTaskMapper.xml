@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.ActiveTaskMapper">
+
+	<select id="listAll" resultType="workflow.business.model.ActiveTask">
+		SELECT
+			`id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`created_at`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`previous_op_result_desc`,
+			`claim_group_params`,
+			`task_batch`,
+			`form_data_list`
+		FROM
+			wf_active_task
+		WHERE
+		    1=1
+		    <choose>
+		    	<when test="taskId != null and exceptActiveTaskId != null">
+		    		<![CDATA[AND `task_id` = #{taskId} and `id` <> #{exceptActiveTaskId}]]>
+		    	</when>
+		    	<when test="taskId != null and taskId.trim() != ''">
+			    	AND `task_id` = #{taskId}
+			    </when>
+			    <otherwise></otherwise>
+		    </choose>
+		    <if test="categoryType != null and categoryType.trim() != ''">
+		    	AND `category_type` = #{categoryType}
+		    </if>
+		    <choose>
+	    		<when test="assigneeGroup !=null and assigneeGroup.size > 0">
+	    			AND `assignee` IN
+	    			<foreach item="item" collection="assigneeGroup" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+	    		</when>
+	    		<when test="assignee != null and assignee.trim() != ''">
+	    			AND `assignee` = #{assignee}
+	    		</when>
+	    	</choose>
+		    <if test="accessScopeList != null and accessScopeList.size > 0">
+		    	AND `access_scope` IN
+		    	<foreach item="item" collection="accessScopeList" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+		    </if>
+		    <if test="processInstanceId != null and processInstanceId.trim() != ''">
+		    	AND `process_instance_id` = #{processInstanceId}
+		    </if>
+		     <if test="parentProcessInstanceId != null and parentProcessInstanceId.trim() != ''">
+		    	AND `root_process_instance_id` = #{parentProcessInstanceId}
+		    </if>
+		    <if test="parentTaskDefId != null and parentTaskDefId.trim() != ''">
+		    	AND `parent_task_def_id` = #{parentTaskDefId}
+		    </if>
+		    <if test="taskDefId != null and taskDefId.trim() != ''">
+		    	AND `task_def_id` = #{taskDefId}
+		    </if>
+		    <if test="taskNo != null and taskNo.trim() != ''">
+		    	AND `task_no` LIKE CONCAT('%',#{taskNo},'%')
+		    </if>
+		    <if test="taskId != null and taskId.trim() != ''">
+		    	AND `task_id` = #{taskId}
+		    </if>
+		    <if test="contentId != null and contentId.trim() != ''">
+		    	AND `content_id` = #{contentId}
+		    </if>
+		    <if test="taskBatch != null and taskBatch != ''">
+		    	AND `task_batch` = #{taskBatch}
+		    </if>
+		ORDER BY
+			created_at DESC
+	</select>
+	<!-- 统计待办任务 -->
+	<select id="totalTasks" resultType="workflow.business.model.TotalTasks" >
+		select
+		process_key,
+		process_definition_id as processDefinitionKey,
+		process_definition_name,
+		count(*) as counts
+		from (
+			select process_key,process_definition_id,process_definition_name, access_scope, assignee
+			from wf_active_task order by created_at DESC
+		) as a
+		where 1=1
+			<choose>
+		    	<when test="assigneeGroup !=null and assigneeGroup.size > 0 and accessScopeList != null and accessScopeList.size > 0">
+		    		AND (
+		    		 assignee IN
+		    		 <foreach item="item" collection="assigneeGroup" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+		    		 or `access_scope` IN
+			    	 <foreach item="item" collection="accessScopeList" open="(" separator="," close=")">
+						#{item}
+					 </foreach>
+					)
+		    	</when>
+	    		<when test="assigneeGroup !=null and assigneeGroup.size > 0">
+	    			AND `assignee` IN
+			    	<foreach item="item" collection="assigneeGroup" open="(" separator="," close=")">
+						#{item}
+					</foreach>
+	    		</when>
+	    		<when test="accessScopeList != null and accessScopeList.size > 0">
+		    		AND `access_scope` IN
+			    	 <foreach item="item" collection="accessScopeList" open="(" separator="," close=")">
+						#{item}
+					 </foreach>
+	    		</when>
+	    	</choose>
+	    	<if test="businessTypeList != null and businessTypeList.size > 0">
+	    		AND `process_key` IN
+		    	<foreach item="item" collection="businessTypeList" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+	    	</if>
+		group by process_key
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_active_task
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		    <if test="id != null">`id`,</if>
+		    <if test="categoryType != null">`category_type`,</if>
+		    <if test="taskId != null">`task_id`,</if>
+		    <if test="parentTaskDefId != null">`parent_task_def_id`,</if>
+		    <if test="taskDefId != null">`task_def_id`,</if>
+		    <if test="taskName != null">`task_name`,</if>
+		    <if test="initiator != null">`initiator`,</if>
+		    <if test="processKey != null">`process_key`,</if>
+		    <if test="rootProcessInstanceId != null">`root_process_instance_id`,</if>
+		    <if test="processInstanceId != null">`process_instance_id`,</if>
+		    <if test="judgeList != null">`judge_list`,</if>
+		    <if test="assignee != null">`assignee`,</if>
+		    <if test="taskType != null">`task_type`,</if>
+		    <if test="accessScope != null">`access_scope`,</if>
+		    <if test="contentId != null">`content_id`,</if>
+		    <if test="contentName != null">`content_name`,</if>
+		    <if test="taskNo != null">`task_no`,</if>
+		    <if test="canRetrieve != null">`can_retrieve`,</if>
+		    <if test="propertyList != null">`property_list`,</if>
+		    <if test="signUsersParams != null">`sign_users_params`,</if>
+		    <if test="claimUsersParams != null">`claim_users_params`,</if>
+		    <if test="createdAt != null">`created_at`,</if>
+		    <if test="processDefinitionId != null">`process_definition_id`,</if>
+		    <if test="processDefinitionName != null">`process_definition_name`,</if>
+		    <if test="previousOpResultDesc != null">`previous_op_result_desc`,</if>
+		    <if test="claimGroupParams != null">`claim_group_params`,</if>
+		    <if test="taskBatch != null">`task_batch`,</if>
+		    <if test="formDataList != null">`form_data_list`,</if>
+		</trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+		    <if test="id != null">#{id},</if>
+		    <if test="categoryType != null">#{categoryType},</if>
+		    <if test="taskId != null">#{taskId},</if>
+		    <if test="parentTaskDefId != null">#{parentTaskDefId},</if>
+		    <if test="taskDefId != null">#{taskDefId},</if>
+		    <if test="taskName != null">#{taskName},</if>
+		    <if test="initiator != null">#{initiator},</if>
+		    <if test="processKey != null">#{processKey},</if>
+		    <if test="rootProcessInstanceId != null">#{rootProcessInstanceId},</if>
+		    <if test="processInstanceId != null">#{processInstanceId},</if>
+		    <if test="judgeList != null">#{judgeList},</if>
+		    <if test="assignee != null">#{assignee},</if>
+		    <if test="taskType != null">#{taskType},</if>
+		    <if test="accessScope != null">#{accessScope},</if>
+		    <if test="contentId != null">#{contentId},</if>
+		    <if test="contentName != null">#{contentName},</if>
+		    <if test="taskNo != null">#{taskNo},</if>
+		    <if test="canRetrieve != null">#{canRetrieve},</if>
+		    <if test="propertyList != null">#{propertyList},</if>
+		    <if test="signUsersParams != null">#{signUsersParams},</if>
+		    <if test="claimUsersParams != null">#{claimUsersParams},</if>
+		    <if test="createdAt != null">#{createdAt},</if>
+		    <if test="processDefinitionId != null">#{processDefinitionId},</if>
+		    <if test="processDefinitionName != null">#{processDefinitionName},</if>
+		    <if test="previousOpResultDesc != null">#{previousOpResultDesc},</if>
+		    <if test="claimGroupParams != null">#{claimGroupParams},</if>
+		    <if test="taskBatch != null">#{taskBatch},</if>
+		    <if test="formDataList != null">#{formDataList},</if>
+		</trim>
+	</insert>
+
+	<select id="getActiveTaskById" resultType="workflow.business.model.ActiveTask">
+		SELECT
+			`id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`created_at`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`previous_op_result_desc`,
+			`claim_group_params`,
+			`task_batch`,
+			`form_data_list`
+		FROM
+			wf_active_task
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE wf_active_task
+        <trim prefix="" suffix="" suffixOverrides=",">
+	 	<set>
+			<if test="categoryType != null">`category_type` = #{categoryType},</if>
+			<if test="taskId != null">`task_id` = #{taskId},</if>
+			<if test="parentTaskDefId != null">`parent_task_def_id` = #{parentTaskDefId},</if>
+			<if test="rootProcessInstanceId != null">`root_process_instance_id` = #{rootProcessInstanceId},</if>
+			<if test="taskDefId != null">`task_def_id` = #{taskDefId},</if>
+			<if test="taskName != null">`task_name` = #{taskName},</if>
+			<if test="initiator != null">`initiator` = #{initiator},</if>
+			<if test="processKey != null">`process_key` = #{processKey},</if>
+			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId},</if>
+			<if test="judgeList != null">`judge_list` = #{judgeList},</if>
+			<if test="assignee != null">`assignee` = #{assignee},</if>
+			<if test="taskType != null">`task_type` = #{taskType},</if>
+			<if test="accessScope != null">`access_scope` = #{accessScope},</if>
+			<if test="contentId != null">`content_id` = #{contentId},</if>
+			<if test="contentName != null">`content_name` = #{contentName},</if>
+			<if test="taskNo != null">`task_no` = #{taskNo},</if>
+			<if test="canRetrieve != null">`can_retrieve` = #{canRetrieve},</if>
+			<if test="propertyList != null">`property_list` = #{propertyList},</if>
+			<if test="signUsersParams != null">`sign_users_params` = #{signUsersParams},</if>
+			<if test="claimUsersParams != null">`claim_users_params` = #{claimUsersParams},</if>
+			<if test="createdAt != null">`created_at` = #{createdAt},</if>
+			<if test="processDefinitionId != null">`process_definition_id` = #{processDefinitionId},</if>
+		    <if test="processDefinitionName != null">`process_definition_name` = #{processDefinitionName},</if>
+		    <if test="previousOpResultDesc != null">`previous_op_result_desc` = #{previousOpResultDesc},</if>
+		    <if test="claimGroupParams != null">`claim_group_params` = #{claimGroupParams},</if>
+		    <if test="taskBatch != null">`task_batch` = #{taskBatch},</if>
+		    <if test="formDataList != null">`form_data_list` = #{formDataList},</if>
+		</set>
+		</trim>
+		WHERE
+			id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_active_task
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<insert id="batchSave">
+		INSERT INTO wf_active_task
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		    `id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`created_at`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`previous_op_result_desc`,
+			`claim_group_params`,
+			`task_batch`,
+			`form_data_list`
+		</trim>
+		VALUES
+		<foreach item="item" collection="list" separator="," >
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				<choose>
+	                <when test="item.id != null">#{item.id},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.categoryType != null">#{item.categoryType},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.taskId != null">#{item.taskId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.parentTaskDefId != null">#{item.parentTaskDefId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.taskDefId != null">#{item.taskDefId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.taskName != null">#{item.taskName},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.initiator != null">#{item.initiator},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processKey != null">#{item.processKey},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.rootProcessInstanceId != null">#{item.rootProcessInstanceId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processInstanceId != null">#{item.processInstanceId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.judgeList != null">#{item.judgeList},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.assignee != null">#{item.assignee},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.taskType != null">#{item.taskType},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.accessScope != null">#{item.accessScope},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.contentId != null">#{item.contentId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.contentName != null">#{item.contentName},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.taskNo != null">#{item.taskNo},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.canRetrieve != null">#{item.canRetrieve},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.propertyList != null">#{item.propertyList},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.signUsersParams != null">#{item.signUsersParams},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.claimUsersParams != null">#{item.claimUsersParams},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.createdAt != null">#{item.createdAt},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processDefinitionId != null">#{item.processDefinitionId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processDefinitionName != null">#{item.processDefinitionName},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.previousOpResultDesc != null">#{item.previousOpResultDesc},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.claimGroupParams != null">#{item.claimGroupParams},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.taskBatch != null">#{item.taskBatch},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+				<choose>
+					<when test="item.formDataList != null">#{item.formDataList},</when>
+					<otherwise>DEFAULT,</otherwise>
+				</choose>
+			</trim>
+		</foreach>
+	</insert>
+
+	<delete id="deleteActiveTask">
+		DELETE
+		FROM
+			wf_active_task
+		WHERE
+			<choose>
+				<when test="userId != null and taskId != null">
+					`assignee` = #{userId} and `task_id` = #{taskId}
+				</when>
+				<when test="taskId != null">`task_id` = #{taskId}</when>
+	            <otherwise><![CDATA[1<>1]]></otherwise>
+			</choose>
+	</delete>
+
+	<!--<delete id="deleteByProcess">
+		DELETE
+		FROM
+			wf_active_task
+		WHERE
+			<choose>
+				<when test="processDefinitionId != null">`process_definition_id` = #{processDefinitionId}</when>
+				<when test="processInstanceId != null">`process_instance_id` = #{processInstanceId}</when>
+				<when test="taskId != null">`task_id` = #{taskId}</when>
+	            <otherwise><![CDATA[1<>1]]></otherwise>
+			</choose>
+	</delete>-->
+
+	<delete id="deleteByProcess">
+		DELETE	FROM wf_active_task  ${ew.customSqlSegment}
+	</delete>
+<!--	<update id="updateStatus">-->
+<!--		UPDATE wf_active_task-->
+<!--	 	<set>-->
+<!--		    `status` = #{status}-->
+<!--		</set>-->
+<!--		WHERE-->
+<!--			<if test="processDefinitionId != null">`process_definition_id` = #{processDefinitionId}</if>-->
+<!--			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId}</if>-->
+<!--			<if test="taskId != null">`task_id` = #{taskId}</if>-->
+<!--	</update>-->
+
+
+	<update id="updateStatus">
+		UPDATE wf_active_task set `status` = #{status} ${ew.customSqlSegment}
+	</update>
+</mapper>

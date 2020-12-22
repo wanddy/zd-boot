@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.AuditLogMapper">
+
+	<select id="listAll" resultType="workflow.business.model.AuditLog">
+		SELECT
+			`id`,
+			`content_id`,
+			`process_instance_id`,
+			`unit_name`,
+			`user_name`,
+			`operate_time`,
+			`business_node`,
+			`business_operate`,
+			`memo`,
+			`process_initiator`,
+			audit_file_url,
+			task_def_id,
+			parent_task_def_id,
+			audit_file_name,
+			appellation
+		FROM
+			wf_audit_log
+		WHERE
+		    1=1
+		    <if test="contentId != null and contentId.trim() != ''">
+		    	AND `content_id` = #{contentId}
+		    </if>
+		    <if test="processInstanceId != null and processInstanceId.trim() != ''">
+		    	AND `process_instance_id` = #{processInstanceId}
+		    </if>
+		    <if test="businessNode != null and businessNode.trim() != ''">
+		    	AND `business_node` LIKE CONCAT('%',#{businessNode},'%')
+		    </if>
+		    <if test="userName != null and userName.trim() != ''">
+		    	AND `user_name` LIKE CONCAT('%',#{userName},'%')
+		    </if>
+		    <if test="processInitiator != null and processInitiator.trim() != ''">
+		    	AND `process_initiator` = #{processInitiator}
+		    </if>
+		    <if test='auditFileUrl != null and auditFileUrl == "1"'>
+		    	<![CDATA[AND audit_file_url <> '' ]]>
+		    </if>
+		    <if test='auditFileUrl != null and auditFileUrl == "2"'>
+		    	<![CDATA[AND audit_file_url = '' ]]>
+		    </if>
+		ORDER BY
+			operate_time DESC
+	</select>
+
+	<select id="queryLastFile" resultType="workflow.business.model.AuditLog">
+		SELECT
+			`id`,
+			`content_id`,
+			`process_instance_id`,
+			`unit_name`,
+			`user_name`,
+			`operate_time`,
+			`business_node`,
+			`business_operate`,
+			`memo`,
+			`process_initiator`,
+			audit_file_url,
+			task_def_id,
+			parent_task_def_id,
+			audit_file_name,
+			appellation
+		FROM
+			wf_audit_log
+		WHERE
+			<![CDATA[audit_file_url <> '' ]]>
+			 <if test="contentId != null and contentId.trim() != ''">
+		    	AND `content_id` = #{contentId}
+		    </if>
+		    <if test="processInstanceId != null and processInstanceId.trim() != ''">
+		    	AND `process_instance_id` = #{processInstanceId}
+		    </if>
+		GROUP BY
+			 <choose>
+			 	<when test="contentId != null and contentId.trim() != '' and processInstanceId != null and processInstanceId.trim() != ''">
+			 		content_id, process_instance_id, audit_file_url
+			 	</when>
+			 	<when test="processInstanceId != null and processInstanceId.trim() != ''">
+			 		process_instance_id, audit_file_url
+			 	</when>
+			 	<otherwise>
+			 		content_id, audit_file_url
+			 	</otherwise>
+			 </choose>
+		ORDER BY
+			operate_time DESC
+		limit 1
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_audit_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		    <if test="id != null">`id`,</if>
+		    <if test="contentId != null">`content_id`,</if>
+		    <if test="processInstanceId != null">`process_instance_id`,</if>
+		    <if test="unitName != null">`unit_name`,</if>
+		    <if test="userName != null">`user_name`,</if>
+		    <if test="operateTime != null">`operate_time`,</if>
+		    <if test="businessNode != null">`business_node`,</if>
+		    <if test="businessOperate != null">`business_operate`,</if>
+		    <if test="memo != null">`memo`,</if>
+		    <if test="processInitiator != null">`process_initiator`,</if>
+		    <if test="auditFileUrl != null">`audit_file_url`,</if>
+		    <if test="taskDefId != null">`task_def_id`,</if>
+			<if test="parentTaskDefId != null">`parent_task_def_id`,</if>
+			<if test="auditFileName != null">`audit_file_name`,</if>
+			<if test="appellation != null">`appellation`,</if>
+		</trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+		    <if test="id != null">#{id},</if>
+		    <if test="contentId != null">#{contentId},</if>
+		    <if test="processInstanceId != null">#{processInstanceId},</if>
+		    <if test="unitName != null">#{unitName},</if>
+		    <if test="userName != null">#{userName},</if>
+		    <if test="operateTime != null">#{operateTime},</if>
+		    <if test="businessNode != null">#{businessNode},</if>
+		    <if test="businessOperate != null">#{businessOperate},</if>
+		    <if test="memo != null">#{memo},</if>
+		    <if test="processInitiator != null">#{processInitiator},</if>
+		    <if test="auditFileUrl != null">#{auditFileUrl},</if>
+		    <if test="taskDefId != null">#{taskDefId},</if>
+			<if test="parentTaskDefId != null">#{parentTaskDefId},</if>
+			<if test="auditFileName != null">#{auditFileName},</if>
+			<if test="appellation != null">#{appellation},</if>
+		</trim>
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.AuditLog">
+		SELECT
+			`id`,
+			`content_id`,
+			`process_instance_id`,
+			`unit_name`,
+			`user_name`,
+			`operate_time`,
+			`business_node`,
+			`business_operate`,
+			`memo`,
+			`process_initiator`,
+			audit_file_url,
+			task_def_id,
+			parent_task_def_id,
+			audit_file_name,
+			appellation
+		FROM
+			wf_audit_log
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE wf_audit_log
+        <trim prefix="" suffix="" suffixOverrides=",">
+	 	<set>
+			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId},</if>
+			<if test="unitName != null">`unit_name` = #{unitName},</if>
+			<if test="userName != null">`user_name` = #{userName},</if>
+			<if test="operateTime != null">`operate_time` = #{operateTime},</if>
+			<if test="businessNode != null">`business_node` = #{businessNode},</if>
+			<if test="businessOperate != null">`business_operate` = #{businessOperate},</if>
+			<if test="memo != null">`memo` = #{memo},</if>
+			<if test="contentId != null">`content_id` = #{contentId},</if>
+			<if test="processInitiator != null">`process_initiator` = #{processInitiator},</if>
+			<if test="auditFileUrl != null">`audit_file_url` = #{auditFileUrl},</if>
+			<if test="taskDefId != null">`task_def_id` = #{taskDefId},</if>
+			<if test="parentTaskDefId != null">`parent_task_def_id` = #{parentTaskDefId},</if>
+			<if test="auditFileName != null">`audit_file_name` = #{auditFileName},</if>
+			<if test="appellation != null">`appellation` = #{appellation},</if>
+		</set>
+		</trim>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_audit_log
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

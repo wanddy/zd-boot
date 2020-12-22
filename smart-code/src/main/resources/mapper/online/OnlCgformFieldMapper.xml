@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="smartcode.form.mapper.OnlCgformFieldMapper">
+	<!-- 执行delete 删除数据 -->
+	<delete id="deleteAutoList" parameterType="java.lang.String">
+		${sqlStr}
+	</delete>
+
+	<!-- 执行select form语句 -->
+	<select id="queryFormData" parameterType="java.lang.String" resultType="java.util.Map">
+		${sqlStr}
+	</select>
+
+	<!-- 执行update语句 据说可以防注入 -->
+	<update id="executeUpdatetSQL" parameterType="java.util.Map">
+		${execute_sql_string}
+	</update>
+
+	<!-- 执行insert语句 据说可以防注入 -->
+	<insert id="executeInsertSQL" parameterType="java.util.Map">
+		${execute_sql_string}
+	</insert>
+
+	<!-- 执行编辑语句 -->
+	<update id="editFormData" parameterType="java.lang.String">
+		${sqlStr}
+	</update>
+
+	<select id="selectOnlineHideColumns" resultType="java.lang.String">
+select t.perms from sys_permission t where menu_type = 2 and t.perms like #{online_tbname}
+			and (t.perms_type = '0'
+				or (t.perms_type = '1'
+						and NOT EXISTS(
+						   select * from sys_user a
+							join sys_user_role b on a.id = b.user_id
+							join sys_role c on c.id = b.role_id
+							join sys_role_permission d on d.role_id = c. id
+							where t.id = d.permission_id and a.id = #{user_id}
+						)
+					)
+				)
+	</select>
+	<select id="selectFlowAuthColumns" resultType="java.lang.String">
+		SELECT rule_code FROM ext_act_process_node_auth eapna
+		WHERE eapna.form_type = '1'
+		AND eapna.process_node_code = #{task_id}
+		AND eapna.form_biz_code = #{table_name}
+		<choose>
+			<when test='rule_type == "1"'>
+				AND eapna.status = '0' AND eapna.rule_type = '1'
+			</when>
+			<when test='rule_type == "2"'>
+				AND eapna.status = '1' AND eapna.rule_type = '2'
+			</when>
+			<otherwise>
+				AND 1 = 0
+			</otherwise>
+		</choose>
+	</select>
+	<select id="selectOnlineDisabledColumns" resultType="java.lang.String">
+select t.perms from sys_permission t where menu_type = 2 and t.perms like #{online_tbname}
+			and t.perms_type = '2'
+			and NOT EXISTS(
+			   select * from sys_user a
+				join sys_user_role b on a.id = b.user_id
+				join sys_role c on c.id = b.role_id
+				join sys_role_permission d on d.role_id = c. id
+				where t.id = d.permission_id and a.id = #{user_id}
+			)
+	</select>
+	<!-- 执行select list语句 -->
+	<select id="queryListBySql" parameterType="java.lang.String" resultType="java.util.Map">
+		${sqlStr}
+	</select>
+
+	<!-- 执行select 分页查询集合 -->
+	<select id="selectPageBySql" parameterType="java.lang.String" resultType="java.util.Map">
+		${sqlStr}
+	</select>
+
+	<!-- 执行select count语句 -->
+	<select id="queryCountBySql" parameterType="java.lang.String" resultType="java.lang.Integer">
+		${sqlStr}
+	</select>
+	<!-- 执行select 查询集合 -->
+	<select id="queryListData" resultType="java.util.Map">
+${sqlStr}
+	</select>
+</mapper>

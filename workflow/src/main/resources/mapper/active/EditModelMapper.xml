@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.EditModelMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.EditModelEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`description`,
+			`creater`,
+			`create_time`,
+			`updater`,
+			`update_time`,
+			`info`,
+			`thumbnail`,
+			`process_type`,
+			`release_version`
+		FROM
+			wf_edit_model
+		<where>
+			<if test="process_type != null">`process_type` = #{process_type}</if>
+			<if test="process_key != null"> and `process_key` like #{process_key} '%'</if>
+			<if test="process_name != null"> and `process_name` like '%' #{process_name} '%'</if>
+			<if test="versionJudge != null"> and ${versionJudge}</if>
+		</where>
+		<if test="orderInfo != null"> ORDER BY ${orderInfo}</if>
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_edit_model (
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`description`,
+			`creater`,
+			`create_time`,
+			`updater`,
+			`update_time`,
+			`info`,
+			`thumbnail`,
+			`process_type`,
+			`release_version`
+		)
+		VALUES (
+			#{processId},
+			#{processKey},
+			#{processName},
+			#{description},
+			#{creater},
+			#{createTime},
+			#{updater},
+			#{updateTime},
+			#{info},
+			#{thumbnail},
+			#{processType},
+			#{releaseVersion}
+		)
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.EditModelEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`description`,
+			`creater`,
+			`create_time`,
+			`updater`,
+			`update_time`,
+			`info`,
+			`thumbnail`,
+			`process_type`,
+			`release_version`
+		FROM
+			wf_edit_model
+		WHERE
+			process_id = #{id}
+	</select>
+
+	<select id="getObjectByKey" resultType="workflow.business.model.entity.EditModelEntity">
+		SELECT
+		`process_id`,
+		`process_key`,
+		`process_name`,
+		`description`,
+		`creater`,
+		`create_time`,
+		`updater`,
+		`update_time`,
+		`info`,
+		`thumbnail`,
+		`process_type`,
+		`release_version`
+		FROM
+			wf_edit_model
+		WHERE
+			process_key = #{key}
+	</select>
+
+	<update id="update">
+		UPDATE wf_edit_model
+	 	<set>
+			<if test="processKey != null">`process_key` = #{processKey}, </if>
+			<if test="processName != null">`process_name` = #{processName}, </if>
+			<if test="description != null">`description` = #{description}, </if>
+			<if test="creater != null">`creater` = #{creater}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="updater != null">`updater` = #{updater}, </if>
+			<if test="updateTime != null">`update_time` = #{updateTime}, </if>
+			<if test="info != null">`info` = #{info}, </if>
+			<if test="thumbnail != null">`thumbnail` = #{thumbnail}, </if>
+			<if test="processType != null">`process_type` = #{processType}, </if>
+			<if test="releaseVersion != null">`release_version` = #{releaseVersion}</if>
+		</set>
+		WHERE
+		process_key = #{processKey}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_edit_model
+		WHERE
+			process_id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<delete id="remove">
+		DELETE FROM wf_edit_model WHERE process_id=#{id}
+	</delete>
+
+</mapper>

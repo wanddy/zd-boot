@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.TaskStatusMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.TaskStatus">
+		SELECT
+			`id`,
+			`content_id`,
+			`process_instance_id`,
+			`task_def_id`,
+			`task_name`,
+			`is_activce`
+		FROM
+			wf_task_status
+		ORDER BY
+			id DESC
+	</select>
+
+	<insert id="save">
+		<selectKey keyProperty="count" resultType="int" order="BEFORE">
+			select count(1) from wf_task_status
+			<where>
+				`content_id` = #{contentId}
+			</where>
+		</selectKey>
+		<if test="count == 0">
+			INSERT INTO wf_task_status
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+			    <if test="id != null">`id`,</if>
+			    <if test="contentId != null">`content_id`,</if>
+			    <if test="processInstanceId != null">`process_instance_id`,</if>
+			    <if test="taskDefId != null">`task_def_id`,</if>
+			    <if test="taskName != null">`task_name`,</if>
+			    <if test="isActivce != null">`is_activce`,</if>
+			</trim>
+	        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+			    <if test="id != null">#{id},</if>
+			    <if test="contentId != null">#{contentId},</if>
+			    <if test="processInstanceId != null">#{processInstanceId},</if>
+			    <if test="taskDefId != null"> #{taskDefId},</if>
+			    <if test="taskName != null">#{taskName},</if>
+			    <if test="isActivce != null">#{isActivce},</if>
+			</trim>
+		</if>
+		<if test="count > 0">
+			UPDATE wf_task_status
+	        <trim prefix="" suffix="" suffixOverrides=",">
+		 	<set>
+				<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId},</if>
+				<if test="taskDefId != null">`task_def_id` = #{taskDefId},</if>
+				<if test="taskName != null">`task_name` = #{taskName},</if>
+				<if test="isActivce != null">`is_activce` = #{isActivce},</if>
+			</set>
+			</trim>
+			WHERE
+				`content_id` = #{contentId}
+		</if>
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.TaskStatus">
+		SELECT
+			`id`,
+			`content_id`,
+			`process_instance_id`,
+			`task_def_id`,
+			`task_name`,
+			`is_activce`
+		FROM
+			wf_task_status
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE wf_task_status
+        <trim prefix="" suffix="" suffixOverrides=",">
+	 	<set>
+			<if test="contentId != null">`content_id` = #{contentId},</if>
+			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId},</if>
+			<if test="taskDefId != null">`task_def_id` = #{taskDefId},</if>
+			<if test="taskName != null">`task_name` = #{taskName},</if>
+			<if test="isActivce != null">`is_activce` = #{isActivce},</if>
+		</set>
+		</trim>
+		WHERE
+			`content_id` = #{contentId}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_task_status
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<update id="updateProcessInstToContent">
+		<![CDATA[
+		CALL updateProcessInstToContent(#{processInstanceId}, #{contentId})
+		]]>
+	</update>
+</mapper>

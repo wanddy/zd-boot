@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="auth.domain.relation.user.depart.mapper.SysUserDepartMapper">
+    <select id="getUserDepartByUid" parameterType="String" resultType="auth.entity.UserDepart">
+		SELECT *
+		FROM sys_user_depart
+		WHERE user_id = #{userId, jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="removeUserDepartRelationByUserId">
+        delete
+        from sys_user_depart
+        <where>
+            user_id = #{userId}
+        </where>
+    </select>
+
+    <select id="removeUserDepartRelationByUserIds">
+        delete
+        from sys_user_depart
+        <where>
+            user_id in
+            <foreach collection="userIds" index="index" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>

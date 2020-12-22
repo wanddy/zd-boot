@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.FormContentTableMapper">
+
+	<insert id="saveContent">
+		<selectKey keyProperty="count" resultType="int" order="BEFORE">
+			select count(*) from ${dbTable}
+			<where>
+				<if test="data.contentId != null">
+					`content_id` = #{data.contentId}
+				</if>
+				<if test="data.workType != null">
+					and `work_type` = #{data.workType}
+				</if>
+				<if test="data.id != null">
+					and `id` = #{data.id}
+				</if>
+			</where>
+		</selectKey>
+		<if test="count == 0">
+			INSERT INTO ${dbTable} (
+			`id`,
+			`content_id`,
+			<if test="data.workType != null">`work_type`, </if>
+			`line_num`,
+			`state`,
+			`sort`,
+			<if test="data.fixedId != null">`fixed_id`, </if>
+			`created_at`,
+			<choose>
+				<when test="content != null">
+					`modified_at`,
+					<foreach collection="content.keys" item="key" separator=",">
+						${key}
+					</foreach>
+				</when>
+				<otherwise>
+					`modified_at`
+				</otherwise>
+			</choose>
+			)
+			VALUES (
+			#{data.id},
+			#{data.contentId},
+			<if test="data.workType != null">#{data.workType}, </if>
+			#{data.lineNum},
+			#{data.state},
+			#{data.sort},
+			<if test="data.fixedId != null">#{data.fixedId}, </if>
+			#{data.createdAt},
+			<choose>
+				<when test="content != null">
+					#{data.modifiedAt},
+					<foreach collection="content.values" item="value"
+						separator=",">
+						#{value}
+					</foreach>
+				</when>
+				<otherwise>
+					#{data.modifiedAt}
+				</otherwise>
+			</choose>
+			)
+		</if>
+		<if test="count > 0">
+			UPDATE ${dbTable}
+			<set>
+				<if test="data.contentId != null">`content_id` = #{data.contentId}, </if>
+				<if test="data.workType != null">`work_type` = #{data.workType}, </if>
+				<if test="data.lineNum != null">`line_num` = #{data.lineNum}, </if>
+				<if test="data.state != null">`state` = #{data.state}, </if>
+				<if test="data.sort != null">`sort` = #{data.sort}, </if>
+				<!--<if test="data.createdAt != null">`created_at` = #{data.createdAt}, </if>-->
+				<choose>
+					<when test="content != null">
+						<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt},</if>
+						<foreach collection="content.keys" item="key" open=""
+							close="" separator=",">
+							${key} = #{content[${key}]}
+						</foreach>
+					</when>
+					<otherwise>
+						<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt}</if>
+					</otherwise>
+				</choose>
+			</set>
+			<where>
+				<if test="data.contentId != null">
+					`content_id` = #{data.contentId}
+				</if>
+				<if test="data.workType != null">
+					and `work_type` = #{data.workType}
+				</if>
+				<if test="data.id != null">
+					and `id` = #{data.id}
+				</if>
+			</where>
+		</if>
+	</insert>
+
+	<insert id="batchSave">
+		<foreach collection="data" item="o" separator=";">
+			INSERT INTO ${dbTable} (
+			`id`,
+			`content_id`,
+			`work_type`,
+			`state`,
+			`line_num`,
+			`sort`,
+			<if test="o.fixedId != null">`fixed_id`,</if>
+			`created_at`,
+			<choose>
+				<when test="o.content != null">
+					`modified_at`,
+					<foreach collection="o.content.keys" item="key" separator=",">
+						`${key}`
+					</foreach>
+				</when>
+				<otherwise>
+					`modified_at`
+				</otherwise>
+			</choose>
+			)
+			VALUES
+			(
+			#{o.id},
+			#{o.contentId},
+			<choose>
+				<when test="o.workType != null">
+					#{o.workType},
+				</when>
+				<otherwise>
+					0,
+				</otherwise>
+			</choose>
+			#{o.state},
+			#{o.lineNum},
+			#{o.sort},
+			<if test="o.fixedId != null">#{o.fixedId},</if>
+			#{o.createdAt},
+			<choose>
+				<when test="o.content != null">
+					#{o.modifiedAt},
+					<foreach collection="o.content.values" item="value"
+						separator=",">
+						#{value}
+					</foreach>
+				</when>
+				<otherwise>
+					#{o.modifiedAt}
+				</otherwise>
+			</choose>
+			)
+		</foreach>
+	</insert>
+	<select id="getFixedLine" resultType="String">
+		select fixed_id from ${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+			and fixed_id IN
+			<foreach item="id" collection="fixedId" open="(" separator=","
+				close=")">
+				#{id}
+			</foreach>
+		</where>
+	</select>
+	<select id="countTotal" resultType="int">
+		select count(*) from ${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+		</where>
+	</select>
+	<select id="countTotals" resultType="String">
+		select count(*) from ${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+		</where>
+		UNION ALL select count(*) from ${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+			<if test="state != null">
+				and `state` = #{state}
+			</if>
+		</where>
+		<if test="fixedId != null">
+			UNION ALL select fixed_id from ${dbTable}
+			<where>
+				<if test="contentId != null">
+					`content_id` = #{contentId}
+				</if>
+				<if test="workType != null">
+					and `work_type` = #{workType}
+				</if>
+				and fixed_id IN
+				<foreach item="id" collection="fixedId" open="(" separator=","
+					close=")">
+					#{id}
+				</foreach>
+			</where>
+		</if>
+	</select>
+
+	<select id="getContent" resultType="java.util.HashMap">
+		SELECT
+		`id`,
+		`content_id`,
+		`work_type`,
+		`line_num`,
+		`state`,
+		`sort`,
+		`fixed_id`,
+		`created_at`,
+		<choose>
+			<when test="columns != null">
+				`modified_at`,
+				<foreach collection="columns" item="value" separator=",">
+					`${value}`
+				</foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+			<if test="lineId != null">
+				and `id` = #{lineId}
+			</if>
+		</where>
+	</select>
+
+	<select id="getContentList" resultType="java.util.HashMap">
+		SELECT
+		`id`,
+		`content_id`,
+		`work_type`,
+		`line_num`,
+		`fixed_id`,
+		`state`,
+		`sort`,
+		`created_at`,
+		<choose>
+			<when test="columns != null">
+				`modified_at`,
+				<foreach collection="columns" item="value" separator=",">
+					`${value}`
+				</foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+		</where>
+		ORDER BY
+		`sort` ASC,
+		`line_num` ASC,
+		`created_at` ASC
+	</select>
+
+	<select id="getContentListPage" resultType="java.util.HashMap">
+		SELECT
+		`id`,
+		`content_id`,
+		`work_type`,
+		`line_num`,
+		`state`,
+		`sort`,
+		`fixed_id`,
+		`created_at`,
+		<choose>
+			<when test="columns != null">
+				`modified_at`,
+				<foreach collection="columns" item="value" separator=",">
+					`${value}`
+				</foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+		</where>
+		ORDER BY
+		`sort` ASC,
+		`line_num` ASC,
+		`created_at` ASC
+	</select>
+
+	<update id="updateContent">
+		UPDATE ${dbTable}
+		<set>
+			<if test="data.contentId != null">`content_id` = #{data.contentId}, </if>
+			<if test="data.workType != null">`work_type` = #{data.workType}, </if>
+			<if test="data.lineNum != null">`line_num` = #{data.lineNum}, </if>
+			<if test="data.state != null">`state` = #{data.state}, </if>
+			<if test="data.createdAt != null">`created_at` = #{data.createdAt}, </if>
+			<choose>
+				<when test="content != null">
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt},</if>
+					<foreach collection="content.keys" item="key" open=""
+						close="" separator=",">
+						`${key}` = #{content[${key}]}
+					</foreach>
+				</when>
+				<otherwise>
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt}</if>
+				</otherwise>
+			</choose>
+		</set>
+		<where>
+			<if test="data.contentId != null">
+				`content_id` = #{data.contentId}
+			</if>
+			<if test="data.workType != null">
+				and `work_type` = #{data.workType}
+			</if>
+			<if test="data.id != null">
+				and `id` = #{data.id}
+			</if>
+		</where>
+	</update>
+
+	<update id="updateContentSort">
+		UPDATE ${dbTable}
+		SET
+		`sort` = #{data.sort}
+		WHERE
+		`content_id` = #{data.contentId}
+		and `id` = #{data.id}
+	</update>
+
+	<delete id="removeContent">
+		DELETE
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+			<if test="lineId != null">
+				and `id` = #{lineId}
+			</if>
+		</where>
+	</delete>
+
+</mapper>

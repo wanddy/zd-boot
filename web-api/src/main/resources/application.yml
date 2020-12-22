@@ -1,0 +1,97 @@
+#端口设置
+server:
+  port: 8011
+  servlet:
+    context-path: /api/
+    encoding:
+      charset: utf-8
+#Spring基础设置
+spring:
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  http:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  redis:
+    open: false  # 是否开启redis缓存  true开启   false关闭
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password:
+    timeout: 6000  # 连接超时时长（毫秒）
+    pool:
+      max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+      max-wait: -1      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+      max-idle: 10      # 连接池中的最大空闲连接
+      min-idle: 5       # 连接池中的最小空闲连接
+    usercenterdatabase: 0   #用户中心数据库，用于存放权限及用户信息
+  #多数据源设置
+  datasource:
+    dynamic:
+      #设置默认的数据源或者数据源组,默认值即为master
+      primary: master
+      #设置严格模式,默认false不启动. 启动后在未匹配到指定数据源时候会抛出异常,不启动则使用默认数据源.
+      strict: false
+      #数据源设置
+      datasource:
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/zd_boot_system?useUnicode=true&characterEncoding=utf8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&tinyInt1isBit=false&allowMultiQueries=true&useSSL=false&nullCatalogMeansCurrent=true
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        smart-form:
+          url: jdbc:mysql://127.0.0.1:3306/zd_boot_smart_form?useUnicode=true&characterEncoding=utf8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&tinyInt1isBit=false&allowMultiQueries=true&useSSL=false&nullCatalogMeansCurrent=true
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        smart-core:
+          url: jdbc:mysql://127.0.0.1:3306/zd_boot_core?useUnicode=true&characterEncoding=utf8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2B8&tinyInt1isBit=false&allowMultiQueries=true&useSSL=false&nullCatalogMeansCurrent=true
+          username: root
+          password: 123456
+          driver-class-name: com.mysql.cj.jdbc.Driver
+  activiti:
+    #流程定义自动部署
+    check-process-definitions: false
+    #数据库自动更新（无表时建空表）
+    database-schema-update: false
+    #日志等级(none,activity,audit,full)
+    history-level: full
+    #        job-executor-activate: false
+    async-executor-activate: false
+#MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:mapper/*/*.xml
+
+#性能监控
+management:
+  endpoints:
+    web:
+      exposure:
+        include: metrics,httptrace
+
+zdboot:
+  # 本地：local\Minio：minio\阿里云：alioss
+  uploadType: qiniu
+  path :
+    #文件上传根目录 设置
+    upload: D://opt//upFiles
+    #webapp文件路径
+    webapp: D://opt//webapp
+
+# 微信公众号配置
+wx:
+  accessTokenUrl: https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&
+  appId: wx698b5e68158dfb2b
+  secret: 0385a93d1d268e66041de728899a9686
+
+#qiniu:
+#  accessKey: -ToVz0iB2-e5fTQnmC6PZowb2xDEm46xORfAtX34
+#  secretKey: osALQ8Wrlp0-JVMzrf7C2ZMd9JIkRUMMcR8eWlZV
+#  bucket: ypsports
+#  url: https://upload.ypsport.snailges.com/

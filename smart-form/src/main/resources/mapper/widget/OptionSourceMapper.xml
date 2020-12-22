@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.widget.mapper.OptionSourceMapper">
+	<resultMap type="smartform.widget.model.OptionSource"
+		id="optionSourceMap">
+		<result property="single" column="is_single" />
+	</resultMap>
+	<select id="listForPage" resultMap="optionSourceMap">
+		SELECT
+		`id`,
+		`category_id`,
+		`is_single`,
+		`sort`,
+		`name`,
+		`options_type`,
+		`options_code`,
+		`created_at`,
+		`modified_at`,
+		`state`
+		FROM
+		form_optionsource
+		<where>
+			<if test="state != null">
+				`state` = #{state}
+			</if>
+			<if test="name != null">
+				and `name` like '%' #{name} '%'
+			</if>
+		</where>
+		ORDER BY
+		created_at DESC
+	</select>
+
+	<select id="list" resultMap="optionSourceMap">
+		SELECT
+		`id`,
+		`category_id`,
+		`is_single`,
+		`options_type`,
+		`options_code`,
+		`state`
+		FROM
+		form_optionsource
+		WHERE
+		id IN
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</select>
+
+	<insert id="save">
+		INSERT INTO form_optionsource (
+		`id`,
+		<if test="categoryId != null">`category_id`,</if>
+		`is_single`,
+		<if test="sort != null">`sort`,</if>
+		`name`,
+		<if test="optionsType != null">`options_type`,</if>
+		<if test="optionsCode != null">`options_code`,</if>
+		`created_at`,
+		`modified_at`,
+		`state`
+		)
+		VALUES (
+		#{id},
+		<if test="categoryId != null">#{categoryId},</if>
+		#{single},
+		<if test="sort != null">#{sort},</if>
+		#{name},
+		<if test="optionsType != null">#{optionsType},</if>
+		<if test="optionsCode != null">#{optionsCode},</if>
+		#{createdAt},
+		#{modifiedAt},
+		#{state}
+		)
+	</insert>
+
+	<select id="getObjectById" resultMap="optionSourceMap">
+		SELECT
+		`id`,
+		`category_id`,
+		`is_single`,
+		`sort`,
+		`name`,
+		`options_type`,
+		`options_code`,
+		`created_at`,
+		`modified_at`,
+		`state`
+		FROM
+		form_optionsource
+		WHERE
+		id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE form_optionsource
+		<set>
+			<if test="categoryId != null">`category_id` = #{categoryId}, </if>
+			<if test="single != null">`is_single` = #{single}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="optionsType != null">`options_type` = #{optionsType}, </if>
+			<if test="optionsCode != null">`options_code` = #{optionsCode}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}, </if>
+			<if test="state != null">`state` = #{state}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		form_optionsource
+		WHERE
+		id IN
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

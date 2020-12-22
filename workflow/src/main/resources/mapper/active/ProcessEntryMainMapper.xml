@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.ProcessEntryMainMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.ProcessEntryMainEntity">
+		SELECT
+		`id`,
+		`project_type`,
+		`project_name`,
+		`form_id`,
+		`user_id`,
+		`category_id`,
+		`process_key`,
+		`process_definition_id`,
+		`process_instance_id`,
+		`start_time`,
+		`end_time`,
+		`created_at`,
+		`modified_at`,
+		`state`,
+		`commonly`
+		FROM
+		process_entry_main
+		<where>
+			<if test="projecttype != null"> and `project_type` = #{projecttype} </if>
+			<if test="categoryid != null"> and `category_id` = #{categoryid}</if>
+			<if test="commonly != null"> and `commonly` = #{commonly}</if>
+		</where>
+		ORDER BY created_at
+	</select>
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.ProcessEntryMainEntity">
+		SELECT
+		`id`,
+		`project_type`,
+		`project_name`,
+		`form_id`,
+		`user_id`,
+		`category_id`,
+		`process_key`,
+		`process_definition_id`,
+		`process_instance_id`,
+		`start_time`,
+		`end_time`,
+		`created_at`,
+		`modified_at`,
+		`state`,
+		`commonly`
+		FROM
+		process_entry_main
+		<where>
+			`id` = #{id}
+		</where>
+	</select>
+
+	<update id="update">
+		UPDATE process_entry_main
+	 	<set>
+			<if test="project_type != null">`project_type` = #{project_type}, </if>
+			<if test="project_name != null">`project_name` = #{project_name}, </if>
+			<if test="form_id != null">`form_id` = #{form_id}, </if>
+			<if test="user_id != null">`user_id` = #{user_id}, </if>
+			<if test="category_id != null">`category_id` = #{category_id}, </if>
+			<if test="process_key != null">`process_key` = #{process_key}, </if>
+			<if test="process_definition_id != null">`process_definition_id` = #{process_definition_id}, </if>
+			<if test="process_instance_id != null">`process_instance_id` = #{process_instance_id}, </if>
+			<if test="start_time != null">`start_time` = #{start_time}, </if>
+			<if test="end_time != null">`end_time` = #{end_time}, </if>
+			<if test="created_at != null">`created_at` = #{created_at},</if>
+			<if test="modified_at != null">`modified_at` = #{modified_at},</if>
+			<if test="state != null">`state` = #{state},</if>
+			<if test="commonly != null">`commonly` = #{commonly},</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		process_entry_main
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<delete id="remove">
+		DELETE FROM process_entry_main WHERE id=#{id}
+	</delete>
+
+</mapper>

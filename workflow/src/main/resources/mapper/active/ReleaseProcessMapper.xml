@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.ReleaseProcessMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.ReleaseProcessEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_version`,
+			`sub_key`
+		FROM
+			wf_release_process
+		WHERE
+			`process_id` = #{process_id}
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_release_process (
+			`process_id`,
+			`process_key`,
+			`process_version`,
+			`sub_key`
+		)
+		VALUES (
+			#{processId},
+			#{processKey},
+			#{processVersion},
+			#{subKey}
+		)
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.ReleaseProcessEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_version`,
+			`sub_key`
+		FROM
+			wf_release_process
+		WHERE
+			process_id = #{processId}
+	</select>
+
+	<update id="update">
+		UPDATE wf_release_process
+	 	<set>
+			<if test="processKey != null">`process_key` = #{processKey}, </if>
+			<if test="processVersion != null">`process_version` = #{processVersion}, </if>
+			<if test="subKey != null">`sub_key` = #{subKey}</if>
+		</set>
+		WHERE
+			process_id = #{processId}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_release_process
+		WHERE
+			process_id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

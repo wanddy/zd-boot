@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.UserTaskFinishedMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.UserTaskFinishedEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`process_instance_id`,
+			`task_id`,
+			`task_name`,
+			`task_def_id`,
+			`finish_time`,
+			`unit_id`,
+			`unit_name`,
+			`user_id`,
+			`user_name`
+		FROM
+			wf_user_task_finished
+		<where>
+			<if test="user_id != null">`user_id` = #{user_id}</if>
+			<if test="user_name != null"> and `user_name` like #{user_name} '%'</if>
+			<if test="unit_id != null"> and `unit_id` = #{unit_id}</if>
+			<if test="unit_name != null"> and `unit_name` like #{unit_name} '%'</if>
+			<if test="process_id != null"> and `process_id` = ${process_id}</if>
+			<if test="task_name != null"> and `task_name` like #{task_name} '%'</if>
+		</where>
+		<if test="orderInfo != null"> ORDER BY ${orderInfo}</if>
+	</select>
+
+	<select id="simpleList" resultType="workflow.business.model.entity.UserTaskFinishedEntity">
+		SELECT
+			`task_id`,
+			`unit_id`,
+			`user_id`
+		FROM
+			wf_user_task_finished
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_user_task_finished (
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`process_instance_id`,
+			`task_id`,
+			`task_name`,
+			`task_def_id`,
+			`finish_time`,
+			`unit_id`,
+			`unit_name`,
+			`user_id`,
+			`user_name`
+		)
+		VALUES (
+			#{processId},
+			#{processKey},
+			#{processName},
+			#{processInstanceId},
+			#{taskId},
+			#{taskName},
+			#{taskDefId},
+			#{finishTime},
+			#{unitId},
+			#{unitName},
+			#{userId},
+			#{userName}
+		)
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.UserTaskFinishedEntity">
+		SELECT
+			`process_id`,
+			`process_key`,
+			`process_name`,
+			`process_instance_id`,
+			`task_id`,
+			`task_name`,
+			`task_def_id`,
+			`finish_time`,
+			`unit_id`,
+			`unit_name`,
+			`user_id`,
+			`user_name`
+		FROM
+			wf_user_task_finished
+		WHERE
+			process_id = #{processId}
+	</select>
+
+	<select id="getObjectBytaskId" resultType="workflow.business.model.entity.UserTaskFinishedEntity">
+        SELECT
+            `process_id`,
+            `process_key`,
+            `process_name`,
+            `process_instance_id`,
+            `task_id`,
+            `task_name`,
+            `task_def_id`,
+            `finish_time`,
+            `unit_id`,
+            `unit_name`,
+            `user_id`,
+            `user_name`
+        FROM
+            wf_user_task_finished
+        WHERE
+            task_id = #{taskId}
+    </select>
+
+	<update id="update">
+		UPDATE wf_user_task_finished
+	 	<set>
+			<if test="processKey != null">`process_key` = #{processKey}, </if>
+			<if test="processName != null">`process_name` = #{processName}, </if>
+			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId}, </if>
+			<if test="taskId != null">`task_id` = #{taskId}, </if>
+			<if test="taskName != null">`task_name` = #{taskName}, </if>
+			<if test="taskDefId != null">`task_def_id` = #{taskDefId}, </if>
+			<if test="finishTime != null">`finish_time` = #{finishTime}, </if>
+			<if test="unitId != null">`unit_id` = #{unitId}, </if>
+			<if test="unitName != null">`unit_name` = #{unitName}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="userName != null">`user_name` = #{userName}</if>
+		</set>
+		WHERE
+			process_id = #{processId}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_user_task_finished
+		WHERE
+			process_id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<delete id="remove">
+        DELETE
+        FROM
+            wf_user_task_finished
+        WHERE
+            task_id = #{taskId}
+    </delete>
+</mapper>

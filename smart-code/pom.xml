@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <!--父模块依赖-->
+    <parent>
+        <artifactId>zd-boot</artifactId>
+        <groupId>zd.boot</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <!--自身信息-->
+    <groupId>zd.boot</groupId>
+    <artifactId>smart-code</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>smart-code</name>
+    <description>代码生成</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <common.version>0.0.1-SNAPSHOT</common.version>
+        <hibernate.version>5.4.18.Final</hibernate.version>
+        <freemarker.version>2.3.30</freemarker.version>
+        <druid.version>1.1.17</druid.version>
+    </properties>
+
+    <dependencies>
+
+        <!--common模块-->
+        <dependency>
+            <groupId>zd.boot</groupId>
+            <artifactId>common</artifactId>
+            <version>${common.version}</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-lang3</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!--hibernate-core-->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
+
+        <!--freemarker模板引擎-->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>${freemarker.version}</version>
+        </dependency>
+
+        <!--druid连接池-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>${druid.version}</version>
+        </dependency>
+
+    </dependencies>
+</project>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.ProcessEntryCategoryMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.ProcessEntryCategory">
+		SELECT
+		`id`,
+		`name`,
+		`sort`,
+		`created_at`,
+		`modified_at`,
+		`state`
+		FROM
+		process_entry_category
+		<where>
+			<if test="state != null"> and `state` = #{state} </if>
+		</where>
+		ORDER BY created_at
+	</select>
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.ProcessEntryCategory">
+		SELECT
+		`id`,
+		`name`,
+		`sort`,
+		`created_at`,
+		`modified_at`,
+		`state`
+		FROM
+		process_entry_category
+		<where>
+			`id` = #{id}
+		</where>
+	</select>
+
+	<update id="update">
+		UPDATE process_entry_category
+	 	<set>
+			<if test="id != null">`id` = #{id}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="sort != null">`sort` = #{sort}, </if>
+			<if test="createdat != null">`created_at` = #{createdat},</if>
+			<if test="modifiedat != null">`modified_at` = #{modifiedat},</if>
+			<if test="state != null">`state` = #{state},</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		process_entry_category
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<delete id="remove">
+		DELETE FROM process_entry_category WHERE id=#{id}
+	</delete>
+
+</mapper>

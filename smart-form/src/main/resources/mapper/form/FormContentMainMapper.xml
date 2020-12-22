@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.FormContentMainMapper">
+
+	<select id="customSelect" resultType="Object">
+		<foreach collection="select" item="o" separator="UNION ALL">
+			${o}
+	        <if test="contentId != null">
+	        	and `content_id` = #{contentId}
+	        </if>
+		</foreach>
+	</select>
+
+	<insert id="saveContent">
+		INSERT INTO ${dbTable} (
+		`id`,
+		`form_id`,
+		`state`,
+		`created_at`,
+		<choose>
+			<when test="content != null">
+				`modified_at`,
+		        <foreach collection="content.keys" item="key" separator=",">
+		            `${key}`
+		        </foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		)
+		VALUES (
+		#{data.id},
+		#{data.formId},
+		#{data.state},
+		#{data.createdAt},
+		<if test="data.submitTime != null">#{data.submitTime}, </if>
+		<choose>
+			<when test="content != null">
+				#{data.modifiedAt},
+				<foreach collection="content.values" item="value" separator=",">
+					#{value}
+				</foreach>
+			</when>
+			<otherwise>
+				#{data.modifiedAt}
+			</otherwise>
+		</choose>
+		)
+	</insert>
+
+    <select id="getContentQuery" resultType="java.util.HashMap">
+        SELECT
+        `id`,
+        `form_id`,
+        `state`,
+        `created_at`,
+        <choose>
+            <when test="columns != null">
+                `modified_at`,
+                <foreach collection="columns" item="value" separator=",">
+                    `${value}`
+                </foreach>
+            </when>
+            <otherwise>
+                `modified_at`
+            </otherwise>
+        </choose>
+        FROM
+        ${dbTable}
+        <where>
+            <if test="formId != null">
+               `form_id` = #{formId}
+            </if>
+            <if test="extraData != null">
+                <foreach collection="extraData.keys" item="key">
+                        and `${key}` = #{extraData[${key}]}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+	<select id="getContent" resultType="java.util.HashMap">
+		SELECT
+		`id`,
+		`form_id`,
+		`state`,
+		`created_at`,
+		<choose>
+			<when test="columns != null">
+				`modified_at`,
+				<foreach collection="columns" item="value" separator=",">
+					`${value}`
+				</foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		FROM
+		${dbTable}
+		WHERE
+		id = #{id}
+	</select>
+
+	<update id="updateContent">
+		UPDATE ${dbTable}
+		<set>
+			<if test="data.state != null">`state` = #{data.state}, </if>
+			<if test="data.createdAt != null">`created_at` = #{data.createdAt}, </if>
+			<choose>
+				<when test="content != null">
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt},</if>
+					<foreach collection="content.keys" item="key" open="" close=""
+						separator=",">
+						`${key}` = #{content[${key}]}
+					</foreach>
+				</when>
+				<otherwise>
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt}</if>
+				</otherwise>
+			</choose>
+		</set>
+		WHERE
+		id = #{data.id}
+	</update>
+
+</mapper>

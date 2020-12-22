@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.ProjectPagesMapper">
+
+	<select id="listForPage" resultType="workflow.business.model.entity.ProjectPagesEntity">
+		SELECT
+		`id`, `content_id`, `form_id`, `page_id`, `page_status`, `created_at`, `modified_at`, `user_id`
+		FROM
+		project_pages
+		<where>
+			<if test="content_id != null"> and `content_id` = #{content_id} </if>
+			<if test="form_id != null"> and `form_id` = #{form_id} </if>
+		</where>
+		ORDER BY created_at
+	</select>
+
+
+	<select id="getObjectById" resultType="workflow.business.model.entity.ProjectPagesEntity">
+		SELECT
+		`id`, `content_id`, `form_id`, `page_id`, `page_status`, `created_at`, `modified_at`, `user_id`
+		FROM
+		project_pages
+		<where>
+			`id` = #{id}
+		</where>
+	</select>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		project_pages
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<delete id="remove">
+		DELETE FROM project_pages WHERE id=#{id}
+	</delete>
+
+	<delete id="removebycontentid">
+		DELETE FROM project_pages WHERE content_id=#{content_id}
+	</delete>
+</mapper>

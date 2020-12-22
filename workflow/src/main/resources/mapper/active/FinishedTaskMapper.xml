@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="workflow.business.mapper.FinishedTaskMapper">
+
+	<select id="listAll" resultType="workflow.business.model.FinishedTask">
+		SELECT
+			`id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`real_assignee`,
+			`real_assignee_name`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`op_result`,
+			`op_result_desc`,
+			`start_time`,
+			`finish_time`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`claim_group_params`,
+			`task_batch`
+		FROM
+			wf_finished_task
+		WHERE
+		    1=1
+		    <if test="categoryType != null and categoryType.trim() != ''">
+		    	AND `category_type` = #{categoryType}
+		    </if>
+		    <if test="realAssignee != null and realAssignee.trim() != ''">
+		    	AND `real_assignee` = #{realAssignee}
+		    </if>
+		    <if test="realAssigneeName != null and realAssigneeName.trim() != ''">
+		    	AND `real_assignee_name` LIKE CONCAT('%',#{realAssigneeName},'%')
+		    </if>
+		    <if test="accessScopeList != null and accessScopeList.size > 0">
+		    	AND `access_scope` IN
+		    	<foreach item="item" collection="accessScopeList" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+		    </if>
+		    <if test="processInstanceId != null and processInstanceId.trim() != ''">
+		    	AND `process_instance_id` = #{processInstanceId}
+		    </if>
+		    <if test="parentTaskDefId != null and parentTaskDefId.trim() != ''">
+		    	AND `parent_task_def_id` = #{parentTaskDefId}
+		    </if>
+		    <if test="taskDefId != null and taskDefId.trim() != ''">
+		    	AND `task_def_id` = #{taskDefId}
+		    </if>
+		    <if test="opResult != null and opResult.trim() != ''">
+		    	AND `op_result` = #{opResult}
+		    </if>
+		    <if test="taskNo != null and taskNo.trim() != ''">
+		    	AND `task_no` LIKE CONCAT('%',#{taskNo},'%')
+		    </if>
+		ORDER BY
+			finish_time DESC
+	</select>
+	<!-- 查询用户已完成任务数 -->
+	<select id="countTaskByUser" resultType="java.lang.Integer">
+		select count(1) from wf_finished_task
+		where `real_assignee` = #{realAssignee}
+		<if test="businessTypeList != null and businessTypeList.size > 0">
+			AND `process_key` IN
+	    	<foreach item="item" collection="businessTypeList" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<insert id="save">
+		INSERT INTO wf_finished_task
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		    <if test="id != null">`id`,</if>
+		    <if test="categoryType != null">`category_type`,</if>
+		    <if test="taskId != null">`task_id`,</if>
+		    <if test="parentTaskDefId != null">`parent_task_def_id`,</if>
+		    <if test="taskDefId != null">`task_def_id`,</if>
+		    <if test="taskName != null">`task_name`,</if>
+		    <if test="initiator != null">`initiator`,</if>
+		    <if test="processKey != null">`process_key`,</if>
+		    <if test="rootProcessInstanceId != null">`root_process_instance_id`,</if>
+		    <if test="processInstanceId != null">`process_instance_id`,</if>
+		    <if test="judgeList != null">`judge_list`,</if>
+		    <if test="assignee != null">`assignee`,</if>
+		    <if test="realAssignee != null">`real_assignee`,</if>
+		    <if test="realAssigneeName != null">`real_assignee_name`,</if>
+		    <if test="taskType != null">`task_type`,</if>
+		    <if test="accessScope != null">`access_scope`,</if>
+		    <if test="contentId != null">`content_id`,</if>
+		    <if test="contentName != null">`content_name`,</if>
+		    <if test="taskNo != null">`task_no`,</if>
+		    <if test="canRetrieve != null">`can_retrieve`,</if>
+		    <if test="propertyList != null">`property_list`,</if>
+		    <if test="signUsersParams != null">`sign_users_params`,</if>
+		    <if test="claimUsersParams != null">`claim_users_params`,</if>
+		    <if test="opResult != null">`op_result`,</if>
+		    <if test="opResultDesc != null">`op_result_desc`,</if>
+		    <if test="startTime != null">`start_time`,</if>
+		    <if test="finishTime != null">`finish_time`,</if>
+		    <if test="processDefinitionId != null">`process_definition_id`,</if>
+		    <if test="processDefinitionName != null">`process_definition_name`,</if>
+		    <if test="claimGroupParams != null">`claim_group_params`,</if>
+		    <if test="taskBatch != null">`task_batch`,</if>
+		</trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+		    <if test="id != null">#{id},</if>
+		    <if test="categoryType != null">#{categoryType},</if>
+		    <if test="taskId != null">#{taskId},</if>
+		    <if test="parentTaskDefId != null">#{parentTaskDefId},</if>
+		    <if test="taskDefId != null">#{taskDefId},</if>
+		    <if test="taskName != null">#{taskName},</if>
+		    <if test="initiator != null">#{initiator},</if>
+		    <if test="processKey != null">#{processKey},</if>
+		    <if test="rootProcessInstanceId != null">#{rootProcessInstanceId},</if>
+		    <if test="processInstanceId != null">#{processInstanceId},</if>
+		    <if test="judgeList != null">#{judgeList},</if>
+		    <if test="assignee != null">#{assignee},</if>
+		    <if test="realAssignee != null">#{realAssignee},</if>
+		    <if test="realAssigneeName != null">#{realAssigneeName},</if>
+		    <if test="taskType != null">#{taskType},</if>
+		    <if test="accessScope != null">#{accessScope},</if>
+		    <if test="contentId != null">#{contentId},</if>
+		    <if test="contentName != null">#{contentName},</if>
+		    <if test="taskNo != null">#{taskNo},</if>
+		    <if test="canRetrieve != null">#{canRetrieve},</if>
+		    <if test="propertyList != null">#{propertyList},</if>
+		    <if test="signUsersParams != null">#{signUsersParams},</if>
+		    <if test="claimUsersParams != null">#{claimUsersParams},</if>
+		    <if test="opResult != null">#{opResult},</if>
+		    <if test="opResultDesc != null">#{opResultDesc},</if>
+		    <if test="startTime != null">#{startTime},</if>
+		    <if test="finishTime != null">#{finishTime},</if>
+		    <if test="processDefinitionId != null">#{processDefinitionId},</if>
+		    <if test="processDefinitionName != null">#{processDefinitionName},</if>
+		    <if test="claimGroupParams != null">#{claimGroupParams},</if>
+		    <if test="taskBatch != null">#{taskBatch},</if>
+		</trim>
+	</insert>
+
+	<select id="getObjectById" resultType="workflow.business.model.FinishedTask">
+		SELECT
+			`id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`real_assignee`,
+			`real_assignee_name`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`op_result`,
+			`op_result_desc`,
+			`start_time`,
+			`finish_time`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`claim_group_params`,
+			`task_batch`
+		FROM
+			wf_finished_task
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE wf_finished_task
+        <trim prefix="" suffix="" suffixOverrides=",">
+	 	<set>
+			<if test="categoryType != null">`category_type` = #{categoryType},</if>
+			<if test="taskId != null">`task_id` = #{taskId},</if>
+			<if test="parentTaskDefId != null">`parent_task_def_id` = #{parentTaskDefId},</if>
+			<if test="taskDefId != null">`task_def_id` = #{taskDefId},</if>
+			<if test="taskName != null">`task_name` = #{taskName},</if>
+			<if test="initiator != null">`initiator` = #{initiator},</if>
+			<if test="processKey != null">`process_key` = #{processKey},</if>
+			<if test="rootProcessInstanceId != null">`root_process_instance_id` = #{rootProcessInstanceId},</if>
+			<if test="processInstanceId != null">`process_instance_id` = #{processInstanceId},</if>
+			<if test="judgeList != null">`judge_list` = #{judgeList},</if>
+			<if test="assignee != null">`assignee` = #{assignee},</if>
+			<if test="realAssignee != null">`real_assignee` = #{realAssignee},</if>
+			<if test="taskType != null">`task_type` = #{taskType},</if>
+			<if test="accessScope != null">`access_scope` = #{accessScope},</if>
+			<if test="contentId != null">`content_id` = #{contentId},</if>
+			<if test="contentName != null">`content_name` = #{contentName},</if>
+			<if test="taskNo != null">`task_no` = #{taskNo},</if>
+			<if test="canRetrieve != null">`can_retrieve` = #{canRetrieve},</if>
+			<if test="propertyList != null">`property_list` = #{propertyList},</if>
+			<if test="signUsersParams != null">`sign_users_params` = #{signUsersParams},</if>
+			<if test="claimUsersParams != null">`claim_users_params` = #{claimUsersParams},</if>
+			<if test="opResult != null">`op_result` = #{opResult},</if>
+			<if test="opResultDesc != null">`op_result_desc` = #{opResultDesc},</if>
+			<if test="startTime != null">`start_time` = #{startTime},</if>
+			<if test="finishTime != null">`finish_time` = #{finishTime},</if>
+			<if test="realAssigneeName != null">`real_assignee_name` = #{realAssigneeName},</if>
+			<if test="processDefinitionId != null">`process_definition_id` = #{processDefinitionId},</if>
+		    <if test="processDefinitionName != null">`process_definition_name` = #{processDefinitionName},</if>
+		    <if test="claimGroupParams != null">`claim_group_params` = #{claimGroupParams},</if>
+		    <if test="taskBatch != null">`task_batch` = #{taskBatch},</if>
+		</set>
+		</trim>
+		WHERE
+			id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			wf_finished_task
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+	<insert id="batchSave">
+		INSERT INTO wf_finished_task
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+		    `id`,
+			`category_type`,
+			`task_id`,
+			`parent_task_def_id`,
+			`task_def_id`,
+			`task_name`,
+			`initiator`,
+			`process_key`,
+			`root_process_instance_id`,
+			`process_instance_id`,
+			`judge_list`,
+			`assignee`,
+			`real_assignee`,
+			`real_assignee_name`,
+			`task_type`,
+			`access_scope`,
+			`content_id`,
+			`content_name`,
+			`task_no`,
+			`can_retrieve`,
+			`property_list`,
+			`sign_users_params`,
+			`claim_users_params`,
+			`op_result`,
+			`op_result_desc`,
+			`start_time`,
+			`finish_time`,
+			`process_definition_id`,
+			`process_definition_name`,
+			`claim_group_params`,
+			`task_batch`
+		</trim>
+		VALUES
+		<foreach item="item" collection="list" separator="," >
+			<trim prefix="(" suffix=")" suffixOverrides=",">
+				<choose>
+	                <when test="item.id != null">#{item.id},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.categoryType != null">#{item.categoryType},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.taskId != null">#{item.taskId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.parentTaskDefId != null">#{item.parentTaskDefId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.taskDefId != null">#{item.taskDefId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.taskName != null">#{item.taskName},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.initiator != null">#{item.initiator},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.processKey != null">#{item.processKey},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.rootProcessInstanceId != null">#{item.rootProcessInstanceId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.processInstanceId != null">#{item.processInstanceId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.judgeList != null">#{item.judgeList},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.assignee != null">#{item.assignee},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.realAssignee != null">#{item.realAssignee},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.realAssigneeName != null">#{item.realAssigneeName},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.taskType != null">#{item.taskType},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.accessScope != null">#{item.accessScope},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.contentId != null">#{item.contentId},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.contentName != null">#{item.contentName},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.taskNo != null">#{item.taskNo},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.canRetrieve != null">#{item.canRetrieve},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.propertyList != null">#{item.propertyList},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.signUsersParams != null">#{item.signUsersParams},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.claimUsersParams != null">#{item.claimUsersParams},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.opResult != null">#{item.opResult},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+	                <when test="item.opResultDesc != null">#{item.opResultDesc},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.startTime != null">#{item.startTime},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			    <choose>
+	                <when test="item.finishTime != null">#{item.finishTime},</when>
+	                <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processDefinitionId != null">#{item.processDefinitionId},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.processDefinitionName != null">#{item.processDefinitionName},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.claimGroupParams != null">#{item.claimGroupParams},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+	            <choose>
+		            <when test="item.taskBatch != null">#{item.taskBatch},</when>
+		            <otherwise>DEFAULT,</otherwise>
+	            </choose>
+			</trim>
+		</foreach>
+	</insert>
+
+</mapper>

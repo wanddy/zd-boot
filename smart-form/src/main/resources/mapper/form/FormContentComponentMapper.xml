@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.FormContentComponentMapper">
+
+	<insert id="saveContent">
+		<selectKey keyProperty="count" resultType="int" order="BEFORE">
+			select count(*) from ${dbTable}
+			<where>
+				<if test="data.contentId != null">
+					`content_id` = #{data.contentId}
+				</if>
+				<if test="data.workType != null">
+					and `work_type` = #{data.workType}
+				</if>
+			</where>
+		</selectKey>
+		<if test="count == 0">
+			INSERT INTO ${dbTable} (
+			`id`,
+			`content_id`,
+			<if test="data.workType != null">`work_type`, </if>
+			`created_at`,
+			<choose>
+				<when test="content != null">
+					`modified_at`,
+					<foreach collection="content.keys" item="key" separator=",">
+						`${key}`
+					</foreach>
+				</when>
+				<otherwise>
+					`modified_at`
+				</otherwise>
+			</choose>
+			)
+			VALUES (
+			#{data.id},
+			#{data.contentId},
+			<if test="data.workType != null">#{data.workType}, </if>
+			#{data.createdAt},
+			<choose>
+				<when test="content != null">
+					#{data.modifiedAt},
+					<foreach collection="content.values" item="value"
+						separator=",">
+						#{value}
+					</foreach>
+				</when>
+				<otherwise>
+					#{data.modifiedAt}
+				</otherwise>
+			</choose>
+			)
+		</if>
+		<if test="count > 0">
+			UPDATE ${dbTable}
+			<set>
+				<choose>
+					<when test="content != null">
+						<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt},</if>
+						<foreach collection="content.keys" item="key" open=""
+							close="" separator=",">
+							`${key}` = #{content[${key}]}
+						</foreach>
+					</when>
+					<otherwise>
+						<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt}</if>
+					</otherwise>
+				</choose>
+			</set>
+			<where>
+				<if test="data.contentId != null">
+					`content_id` = #{data.contentId}
+				</if>
+				<if test="data.workType != null">
+					and `work_type` = #{data.workType}
+				</if>
+			</where>
+		</if>
+	</insert>
+
+	<select id="getContent" resultType="java.util.HashMap">
+		SELECT
+		`id`,
+		`content_id`,
+		`work_type`,
+		`created_at`,
+		<choose>
+			<when test="columns != null">
+				`modified_at`,
+				<foreach collection="columns" item="value" separator=",">
+					`${value}`
+				</foreach>
+			</when>
+			<otherwise>
+				`modified_at`
+			</otherwise>
+		</choose>
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+
+		</where>
+	</select>
+
+	<update id="updateContent">
+		UPDATE ${dbTable}
+		<set>
+			<choose>
+				<when test="content != null">
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt},</if>
+					<foreach collection="content.keys" item="key" open=""
+						close="" separator=",">
+						`${key}` = #{content[${key}]}
+					</foreach>
+				</when>
+				<otherwise>
+					<if test="data.modifiedAt != null">`modified_at` = #{data.modifiedAt}</if>
+				</otherwise>
+			</choose>
+		</set>
+		<where>
+			<if test="data.contentId != null">
+				`content_id` = #{data.contentId}
+			</if>
+			<if test="data.workType != null">
+				and `work_type` = #{data.workType}
+			</if>
+		</where>
+	</update>
+
+
+	<select id="getFormContent" resultType="java.util.HashMap">
+		SELECT
+		<foreach collection="filedNameList" item="filed" separator=",">
+			`${filed}`
+		</foreach>
+		FROM
+		${tableName}
+	</select>
+</mapper>

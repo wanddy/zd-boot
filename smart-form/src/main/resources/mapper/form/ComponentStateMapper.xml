@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.ComponentStateMapper">
+
+	<select id="list"
+		resultType="smartform.form.model.entity.ComponentStateEntity">
+		SELECT
+		`id`,
+		`content_id`,
+		`table_name`,
+		`work_type`,
+		`refuse_info`,
+		`state`,
+		`page_id`,
+		`created_at`,
+		`modified_at`
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="tableNames != null">
+				AND `table_name` IN
+				<foreach item="tableName" collection="tableNames" open="("
+					separator="," close=")">
+					#{tableName}
+				</foreach>
+			</if>
+		</where>
+		ORDER BY
+		`created_at` ASC
+	</select>
+
+	<insert id="saveContent">
+		<selectKey keyProperty="count" resultType="int" order="BEFORE">
+			select count(*) from ${t.dbTable}
+			<where>
+				<if test="t.contentId != null">
+					`content_id` = #{t.contentId}
+				</if>
+				<if test="t.tableName != null">
+					and `table_name` = #{t.tableName}
+				</if>
+				<if test="t.workType != null">
+					and `work_type` = #{t.workType}
+				</if>
+			</where>
+		</selectKey>
+		<if test="count == 0">
+			INSERT INTO ${t.dbTable} (
+			`id`,
+			`content_id`,
+			`table_name`,
+			<if test="t.workType != null">`work_type`, </if>
+			<if test="t.refuseInfo != null">`refuse_info`, </if>
+			`state`,
+			<if test="t.pageId != null">`page_id`, </if>
+			`created_at`,
+			`modified_at`
+			)
+			VALUES (
+			#{t.id},
+			#{t.contentId},
+			#{t.tableName},
+			<if test="t.workType != null">#{t.workType}, </if>
+			<if test="t.refuseInfo != null">#{t.refuseInfo}, </if>
+			#{t.state},
+			<if test="t.pageId != null">#{t.pageId}, </if>
+			#{t.createdAt},
+			#{t.modifiedAt}
+			)
+		</if>
+		<if test="count > 0">
+			UPDATE ${t.dbTable}
+			<set>
+				<if test="t.state != null">`state` = #{t.state}, </if>
+				<if test="t.modifiedAt != null">`modified_at` = #{t.modifiedAt}</if>
+			</set>
+            <where>
+                <if test="t.contentId != null">
+                    `content_id` = #{t.contentId}
+                </if>
+                <if test="t.tableName != null">
+                    and `table_name` = #{t.tableName}
+                </if>
+                <if test="t.workType != null">
+                    and `work_type` = #{t.workType}
+                </if>
+            </where>
+		</if>
+	</insert>
+
+	<select id="getObject"
+		resultType="smartform.form.model.entity.ComponentStateEntity">
+		SELECT
+		`id`,
+		`content_id`,
+		`table_name`,
+		`work_type`,
+		`refuse_info`,
+		`state`,
+		`page_id`,
+		`created_at`,
+		`modified_at`
+		FROM
+		${dbTable}
+		<where>
+			<if test="contentId != null">
+				`content_id` = #{contentId}
+			</if>
+			<if test="tableName != null">
+				and `table_name` = #{tableName}
+			</if>
+			<if test="workType != null">
+				and `work_type` = #{workType}
+			</if>
+		</where>
+	</select>
+
+	<update id="update">
+		UPDATE ${dbTable}
+		<set>
+			<if test="contentId != null">`content_id` = #{contentId}, </if>
+			<if test="tableName != null">`table_name` = #{tableName}, </if>
+			<if test="workType != null">`work_type` = #{workType}, </if>
+			<if test="refuse_info != null">`refuse_info` = #{refuseInfo}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="pageId != null">`page_id` = #{pageId}, </if>
+			<if test="createdAt != null">`created_at` = #{createdAt}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+</mapper>

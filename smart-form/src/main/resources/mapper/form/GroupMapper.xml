@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.GroupMapper">
+    <resultMap type="smartform.form.model.Group"
+        id="groupMap">
+        <result property="table" column="table_name" />
+    </resultMap>
+    <select id="countTotal" resultType="int">
+        SELECT
+            count(1) count
+        FROM
+            form_group
+        <where>
+            <if test="state != null">
+                `state` = #{state}
+            </if>
+            <if test="categoryId != null">
+                and `category_id` = #{categoryId}
+            </if>
+            <if test="name != null">
+                and `name` like '%' #{name} '%'
+            </if>
+        </where>
+    </select>
+	<select id="listForPage" resultMap="groupMap">
+		SELECT
+		`id`,
+		`category_id`,
+		`group_type`,
+		`show_name`,
+		`show_style`,
+		`db_name`,
+		`table_name`,
+		`work_type`,
+		`name`,
+		`des`,
+		<if test="hasFieldList">
+            `fields_json`,
+            `condition_rules_json`,
+        </if>
+		`created_at`,
+		`modified_at`,
+		`state`,
+		`sort_name`
+		FROM
+		form_group
+		<where>
+			<if test="state != null">
+				`state` = #{state}
+			</if>
+			<if test="name != null">
+				and `name` like '%' #{name} '%'
+			</if>
+            <if test="categoryId != null">
+                and `category_id` = #{categoryId}
+            </if>
+		</where>
+		ORDER BY
+		created_at DESC
+	</select>
+
+	<insert id="save">
+		INSERT INTO form_group (
+		`id`,
+		`category_id`,
+		`group_type`,
+		`show_name`,
+		`show_style`,
+		`db_name`,
+		`table_name`,
+		`work_type`,
+		`name`,
+		<if test="des != null">`des`, </if>
+		`fields_json`,
+        `condition_rules_json`,
+		`created_at`,
+		`modified_at`,
+		`state`,
+		`sort_name`
+		)
+		VALUES (
+		#{id},
+		#{categoryId},
+		#{groupType},
+		#{showName},
+		#{showStyle},
+		#{dbName},
+		#{table},
+		#{workType},
+		#{name},
+		<if test="des != null">#{des}, </if>
+		#{fieldsJson},
+		#{conditionRulesJson},
+		#{createdAt},
+		#{modifiedAt},
+		#{state},
+		#{sortName}
+		)
+	</insert>
+
+    <select id="getSimpleInfoById" resultMap="groupMap">
+        SELECT
+        `id`,
+        `category_id`,
+        `created_at`,
+        `modified_at`,
+        `state`
+        FROM
+        form_group
+        WHERE
+        id = #{id}
+    </select>
+
+	<select id="getObjectById" resultMap="groupMap">
+		SELECT
+		`id`,
+        `category_id`,
+		`group_type`,
+		`show_name`,
+		`show_style`,
+		`db_name`,
+		`table_name`,
+		`work_type`,
+		`name`,
+		`des`,
+		`fields_json`,
+        `condition_rules_json`,
+		`created_at`,
+		`modified_at`,
+		`state`,
+		`sort_name`
+		FROM
+		form_group
+		WHERE
+		id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE form_group
+		<set>
+			<if test="categoryId != null">`category_id` = #{categoryId}, </if>
+			<if test="groupType != null">`group_type` = #{groupType}, </if>
+			<if test="showName != null">`show_name` = #{showName}, </if>
+			<if test="showStyle != null">`show_style` = #{showStyle}, </if>
+			<if test="dbName != null">`db_name` = #{dbName}, </if>
+			<if test="table != null">`table_name` = #{table}, </if>
+			<if test="workType != null">`work_type` = #{workType}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="des != null">`des` = #{des}, </if>
+			<if test="fieldsJson != null">`fields_json` = #{fieldsJson}, </if>
+			<if test="conditionRulesJson != null">`condition_rules_json` = #{conditionRulesJson}, </if>
+			<if test="createdAt != null">`created_at` = #{createdAt}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="sortName != null">`sort_name` = #{sortName}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+		form_group
+		WHERE
+		id IN
+		<foreach item="id" collection="array" open="(" separator=","
+			close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

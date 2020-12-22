@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.form.mapper.SmartFormMapper">
+    <select id="countTotal" resultType="int">
+        SELECT
+            count(1) count
+        FROM
+            form
+        <where>
+            <if test="state != null">
+                `state` = #{state}
+            </if>
+            <if test="categoryId != null">
+                and `category_id` = #{categoryId}
+            </if>
+            <if test="name != null">
+                and `name` like '%' #{name} '%'
+            </if>
+        </where>
+    </select>
+	<select id="listForPage" resultType="smartform.form.model.SmartForm">
+		SELECT
+			`id`,
+			`category_id`,
+			`name`,
+			`remarks`,
+			`des`,
+			`user_id`,
+			`created_at`,
+			`modified_at`,
+			`state`,
+			`form_code`,
+			`skip_endtime_validation`
+		FROM
+			form
+        <where>
+            <if test="state != null">
+                `state` = #{state}
+            </if>
+            <if test="categoryId != null">
+                and `category_id` = #{categoryId}
+            </if>
+            <if test="name != null">
+                and `name` like '%' #{name} '%'
+            </if>
+        </where>
+		ORDER BY
+            created_at DESC
+	</select>
+
+	<insert id="save">
+		INSERT INTO form (
+			`id`,
+			`category_id`,
+			`name`,
+            <if test="dbName != null">`db_name`,  </if>
+            <if test="tableName != null">`table_name`,  </if>
+            <if test="fieldMapperJson != null">`field_mapper_json`,  </if>
+            <if test="conditionRulesJson != null">`condition_rules_json`, </if>
+            <if test="extraSettingJson != null">`extra_setting_json`, </if>
+			<if test="remarks != null">`remarks`, </if>
+			<if test="des != null">`des`, </if>
+			<if test="userId != null">`user_id`,  </if>
+            <if test="pagesJson != null">`pages_json`,  </if>
+            <if test="formCode != null">`form_code`,  </if>
+            <if test="skipendtimevalidation != null">`skip_endtime_validation`,  </if>
+			`created_at`,
+			`modified_at`,
+			`state`
+		)
+		VALUES (
+			#{id},
+			#{categoryId},
+			#{name},
+            <if test="dbName != null">#{dbName}, </if>
+            <if test="tableName != null">#{tableName}, </if>
+            <if test="fieldMapperJson != null">#{fieldMapperJson}, </if>
+            <if test="conditionRulesJson != null">#{conditionRulesJson}, </if>
+            <if test="extraSettingJson != null">#{extraSettingJson}, </if>
+			<if test="remarks != null">#{remarks}, </if>
+			<if test="des != null">#{des}, </if>
+			<if test="userId != null">#{userId}, </if>
+            <if test="pagesJson != null">#{pagesJson}, </if>
+            <if test="formCode != null">#{formCode}, </if>
+            <if test="skipendtimevalidation != null">#{skipendtimevalidation}, </if>
+			#{createdAt},
+			#{modifiedAt},
+			#{state}
+		)
+	</insert>
+	<select id="getSimpleInfoByIds" resultType="smartform.form.model.SmartForm">
+        SELECT
+            `id`,
+            `category_id`,
+            `name`,
+            `user_id`,
+            `created_at`,
+            `modified_at`,
+            `skip_endtime_validation`,
+            `state`
+        FROM
+            form
+		WHERE
+			id IN
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+    </select>
+	<select id="getSimpleInfoById" resultType="smartform.form.model.SmartForm">
+        SELECT
+            `id`,
+            `category_id`,
+            `name`,
+            `user_id`,
+            `created_at`,
+            `modified_at`,
+            `skip_endtime_validation`,
+            `state`
+        FROM
+            form
+        WHERE
+            id = #{id}
+    </select>
+	<select id="getObjectById" resultType="smartform.form.model.SmartForm">
+		SELECT
+			`id`,
+			`category_id`,
+			`name`,
+            `db_name`,
+            `table_name`,
+            `field_mapper_json`,
+            `condition_rules_json`,
+            `extra_setting_json`,
+			`remarks`,
+			`des`,
+			`pages_json`,
+			`user_id`,
+			`created_at`,
+			`modified_at`,
+			`state`,
+			`skip_endtime_validation`,
+			`form_code`
+		FROM
+			form
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE form
+	 	<set>
+			<if test="categoryId != null">`category_id` = #{categoryId}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+            <if test="dbName != null">`db_name` = #{dbName}, </if>
+            <if test="tableName != null">`table_name` = #{tableName}, </if>
+            <if test="fieldMapperJson != null">`field_mapper_json` = #{fieldMapperJson}, </if>
+            <if test="conditionRulesJson != null">`condition_rules_json` = #{conditionRulesJson}, </if>
+            <if test="extraSettingJson != null">`extra_setting_json` = #{extraSettingJson}, </if>
+			<if test="remarks != null">`remarks` = #{remarks}, </if>
+			<if test="des != null">`des` = #{des}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+            <if test="pagesJson != null">`pages_json` = #{pagesJson}, </if>
+			<if test="createdAt != null">`created_at` = #{createdAt}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="formCode != null">`form_code` = #{formCode},</if>
+			<if test="skipendtimevalidation != null">`skip_endtime_validation` = #{skipendtimevalidation}</if>
+		</set>
+		WHERE
+			id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			form
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

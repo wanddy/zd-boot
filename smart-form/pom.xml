@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <!--父模块依赖-->
+    <parent>
+        <artifactId>zd-boot</artifactId>
+        <groupId>zd.boot</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <!--自身信息-->
+    <groupId>zd.boot</groupId>
+    <artifactId>smart-form</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>smart-form</name>
+    <description>智能表单</description>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <auth.version>0.0.1-SNAPSHOT</auth.version>
+    </properties>
+
+    <dependencies>
+
+        <!--auth模块-->
+        <dependency>
+            <groupId>zd.boot</groupId>
+            <artifactId>auth</artifactId>
+            <version>${auth.version}</version>
+        </dependency>
+
+    </dependencies>
+
+</project>

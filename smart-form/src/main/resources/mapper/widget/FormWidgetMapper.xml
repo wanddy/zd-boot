@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="smartform.widget.mapper.FormWidgetMapper">
+    <resultMap type="smartform.widget.model.WidgetBase"
+        id="widgetBaseMap">
+        <result property="table" column="table_name" />
+        <result property="setting" column="is_setting" />
+        <result property="disable" column="is_disable" />
+    </resultMap>
+	<select id="listForPage" resultMap="widgetBaseMap">
+		SELECT
+			`id`,
+			`field_type`,
+			`auth_level`,
+			`category_id`,
+			`hide`,
+			`name`,
+			`des`,
+			`ico`,
+			`alias`,
+			`table_name`,
+			`placeholder`,
+			`is_setting`,
+			`is_disable`,
+			`created_at`,
+			`modified_at`,
+			`state`
+		FROM
+			form_field
+        <where>
+            <if test="state != null">
+                `state` = #{state}
+            </if>
+            <if test="name != null">
+                and `name` like #{name} '%'
+            </if>
+        </where>
+        ORDER BY
+        created_at DESC
+	</select>
+
+	<insert id="save">
+		INSERT INTO form_field (
+			`id`,
+			`field_type`,
+			`auth_level`,
+			<if test="categoryId != null">`category_id`, </if>
+			`hide`,
+			`name`,
+			<if test="des != null">`des`, </if>
+			`ico`,
+			<if test="alias != null">`alias`, </if>
+			<if test="table != null">`table_name`, </if>
+			<if test="placeholder != null">`placeholder`, </if>
+			<if test="setting != null">`is_setting`, </if>
+			<if test="disable != null">`is_disable`, </if>
+			`created_at`,
+			`modified_at`,
+			`state`
+		)
+		VALUES (
+			#{id},
+			#{fieldType},
+			#{authLevel},
+			<if test="categoryId != null">#{categoryId}, </if>
+			#{hide},
+			#{name},
+			<if test="des != null">#{des}, </if>
+			#{ico},
+			<if test="alias != null">#{alias}, </if>
+			<if test="table != null">#{table}, </if>
+			<if test="placeholder != null">#{placeholder}, </if>
+			<if test="setting != null">#{setting}, </if>
+			<if test="disable != null">#{disable}, </if>
+			#{createdAt},
+			#{modifiedAt},
+			#{state}
+		)
+	</insert>
+
+	<select id="getObjectById" resultMap="widgetBaseMap">
+		SELECT
+			`id`,
+			`field_type`,
+			`auth_level`,
+			`category_id`,
+			`hide`,
+			`name`,
+			`des`,
+			`ico`,
+			`alias`,
+			`table_name`,
+			`placeholder`,
+			`is_setting`,
+			`is_disable`,
+			`created_at`,
+			`modified_at`,
+			`state`
+		FROM
+			form_field
+		WHERE
+			id = #{id}
+	</select>
+
+	<update id="update">
+		UPDATE form_field
+	 	<set>
+			<if test="fieldType != null">`field_type` = #{fieldType}, </if>
+			<if test="authLevel != null">`auth_level` = #{authLevel}, </if>
+			<if test="categoryId != null">`category_id` = #{categoryId}, </if>
+			<if test="hide != null">`hide` = #{hide}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="des != null">`des` = #{des}, </if>
+			<if test="ico != null">`ico` = #{ico}, </if>
+			<if test="alias != null">`alias` = #{alias}, </if>
+			<if test="table != null">`table_name` = #{table}, </if>
+			<if test="placeholder != null">`placeholder` = #{placeholder}, </if>
+			<if test="setting != null">`is_setting` = #{setting}, </if>
+			<if test="disable != null">`is_disable` = #{disable}, </if>
+			<if test="createdAt != null">`created_at` = #{createdAt}, </if>
+			<if test="modifiedAt != null">`modified_at` = #{modifiedAt}, </if>
+			<if test="state != null">`state` = #{state}</if>
+		</set>
+		WHERE
+			id = #{id}
+	</update>
+
+	<delete id="batchRemove">
+		DELETE
+		FROM
+			form_field
+		WHERE
+			id IN
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

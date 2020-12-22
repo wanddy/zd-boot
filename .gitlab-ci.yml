@@ -1,0 +1,63 @@
+image: docker:stable
+
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+  IMAGE_TAG: $REGISTRY_AD/dev/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
+  JAR_PATH: "web-api/target/web-api.jar"
+#   DEPLOY_NAME: "kewei-httpd"
+#   REGISTRY_YARN_ADDRESS: "https://registry.npm.taobao.org"
+
+stages:
+  - pack
+  - build
+  - deploy
+
+job-pack:
+  stage: pack
+  image: maven:3.6.3-jdk-8
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      # - /root/.m2/repository/
+      - $JAR_PATH
+    policy: push
+  only:
+    - master
+  tags:
+    - master
+  script:
+    #- mvn clean install --batch-mode -Dmaven.test.skip=true --update-snapshots -f ./pom.xml
+    - mvn clean package -Dmaven.test.skip=true
+
+job-build-dev:
+  stage: build
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      # - /root/.m2/repository/
+      - $JAR_PATH
+    policy: pull
+  only:
+    - master
+  tags:
+    - master
+  before_script:
+    - docker login $QCE_REGISTRY_ADDRESS --username $QCE_REGISTRY_USERNAME --password $QCE_REGISTRY_PASSWORD
+  script:
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+
+job-deploy-dev:
+  stage: deploy
+  image: "101.132.102.22/dev/ssh:2.0"
+
+  only:
+    - master
+  tags:
+    - master
+  before_script:
+    - eval $(ssh-agent -s)
+  script:
+    - ssh-add /root/a
+    - echo $IMAGE_TAG
+    - ssh -o StrictHostKeyChecking=no root@"$SWARM_MANAGE_SERVER" sh /root/jiaoben/houduan-restart.sh
