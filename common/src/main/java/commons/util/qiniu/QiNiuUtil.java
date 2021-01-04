@@ -22,10 +22,10 @@ import java.util.UUID;
 @Slf4j
 @Data
 public class QiNiuUtil {
-    private static String accessKey = "-ToVz0iB2-e5fTQnmC6PZowb2xDEm46xORfAtX34";
-    private static String secretKey = "osALQ8Wrlp0-JVMzrf7C2ZMd9JIkRUMMcR8eWlZV";
-    private static String bucket = "ypsports";
-    private static String url = "https://upload.ypsport.snailges.com/";
+    private static String accessKey = "";
+    private static String secretKey = "";
+    private static String bucket = "";
+    private static String url = "";
 
     /**
      * 上传文件

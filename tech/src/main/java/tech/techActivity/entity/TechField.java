@@ -1,6 +1,9 @@
 package tech.techActivity.entity;
 
 import java.io.Serializable;
+
+import auth.entity.Dict;
+import auth.entity.DictItem;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -55,6 +58,10 @@ public class TechField implements Serializable {
 	@ApiModelProperty(value = "内容")
 	private java.lang.String test;
 
+	/**活动id*/
 	@TableField(exist = false)
-	private List<?> dictList;
+	private java.lang.String itemText;
+
+	@TableField(exist = false)
+	private List<DictItem> dictList;
 }

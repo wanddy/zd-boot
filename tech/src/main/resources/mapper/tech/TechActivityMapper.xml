@@ -1,5 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="tech.techActivity.mapper.TechActivityMapper">
+    <select id="getPage" resultType="tech.techActivity.entity.TechActivity">
+        SELECT
+        id,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        sys_org_code,
+        headline,
+        introduce,
+        place,
+        time,
+        sign_time,
+        contact,
+        start_time,
+        end_time,
+        STATUS,
+        url,
+        cancel_url,
+        file_url,
+        audit,
+        people_max,
+        del_flag,
+        dept_code,
+        depart_code,
+        audit_type
+        FROM
+        tech_activity
+        WHERE
+        del_flag = '0'
+        <if test="techActivity.audit!=null and techActivity.audit!=''">
+            AND audit = #{techActivity.audit}
+        </if>
+        <if test="techActivity.status!=null and techActivity.status!=''">
+            AND status = #{techActivity.status}
+        </if>
+        <if test="techActivity.headline!=null and techActivity.headline!=''">
+            AND headline = #{techActivity.headline}
+        </if>
+        AND (dept_code IS NULL OR dept_code LIKE concat("%",#{sysUser.username},"%") OR create_by = #{sysUser.username})
+        order by create_time desc
+    </select>
 
+    <select id="appList" resultType="tech.techActivity.entity.TechActivity">
+        SELECT
+        id,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        sys_org_code,
+        headline,
+        introduce,
+        place,
+        time,
+        sign_time,
+        sign_end_time,
+        contact,
+        start_time,
+        end_time,
+        STATUS,
+        url,
+        cancel_url,
+        file_url,
+        audit,
+        people_max,
+        del_flag,
+        dept_code,
+        depart_code,
+        audit_type
+        FROM
+        tech_activity
+        WHERE
+        del_flag = '0'
+        <if test="startTime !=null and startTime!=''">
+            AND start_time LIKE concat(#{startTime},"%")
+        </if>
+        <if test="status != null and status!=''">
+            AND status = #{status}
+        </if>
+        AND (audit = 2 OR audit IS NULL)
+        <if test="headline !=null and headline!=''">
+            AND  (headline LIKE  concat("%",#{headline},"%")
+            or  place LIKE  concat("%",#{place},"%"))
+        </if>
+        ORDER BY
+        start_time DESC
+    </select>
 </mapper>

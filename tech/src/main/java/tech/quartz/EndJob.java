@@ -10,6 +10,7 @@ import tech.techActivity.entity.TechActivity;
 import tech.techActivity.service.ITechActivityService;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,12 +26,24 @@ public class EndJob implements Job{
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        List<TechActivity> techActivityList = techActivityService.list(
+        List<TechActivity> techActivityList = new ArrayList<>();
+        List<TechActivity> techActivityList1 = techActivityService.list(
                 new QueryWrapper<TechActivity>()
-                        .gt("end_time", simpleDateFormat.format(new Date()))
-                        .eq("status",2L).eq("audit",2L));
-        if(techActivityList!=null && techActivityList.size()>0){
+                        .lt("end_time", new Date())
+                        .eq("status",2L)
+                        .eq("audit",2L));
+        if(techActivityList1!=null && techActivityList1.size()>0){
+            techActivityList.addAll(techActivityList1);
+        }
+        List<TechActivity> techActivityList2 = techActivityService.list(
+                new QueryWrapper<TechActivity>()
+                        .lt("end_time", new Date())
+                        .eq("status",2L)
+                        .isNull("audit"));
+        if(techActivityList2!=null && techActivityList2.size()>0){
+            techActivityList.addAll(techActivityList2);
+        }
+        if(techActivityList.size()>0){
             techActivityList.forEach(techActivity -> {
                 techActivity.setStatus(4L);
             });

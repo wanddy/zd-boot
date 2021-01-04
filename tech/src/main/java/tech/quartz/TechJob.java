@@ -16,6 +16,7 @@ import tech.techActivity.vo.AccessToken;
 import tech.utils.CommonUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,12 +36,24 @@ public class TechJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		List<TechActivity> techActivityList = techActivityService.list(
+		List<TechActivity> techActivityList = new ArrayList<>();
+		List<TechActivity> techActivityList1 = techActivityService.list(
 				new QueryWrapper<TechActivity>()
-						.gt("start_time", simpleDateFormat.format(new Date()))
-						.eq("status",1L).eq("audit",2L));
-		if(techActivityList!=null && techActivityList.size()>0){
+						.lt("start_time", new Date())
+						.eq("status",1L)
+						.eq("audit",2L));
+		if(techActivityList1!=null && techActivityList1.size()>0){
+			techActivityList.addAll(techActivityList1);
+		}
+		List<TechActivity> techActivityList2 = techActivityService.list(
+				new QueryWrapper<TechActivity>()
+						.lt("start_time", new Date())
+						.eq("status",1L)
+						.isNull("audit"));
+		if(techActivityList2!=null && techActivityList2.size()>0){
+			techActivityList.addAll(techActivityList2);
+		}
+		if(techActivityList.size()>0){
 			techActivityList.forEach(techActivity -> {
 				techActivity.setStatus(2L);
 			});
@@ -55,28 +68,25 @@ public class TechJob implements Job {
 					//用户openid
 					jsonObject.put("touser", signUp.getOpenId());
 					jsonObject.put("template_id", templateId);
-					jsonObject.put("url", Constant.dist + "?#/eventdetails?id=" + techActivity.getId() + "&openId=" + signUp.getOpenId());
+					jsonObject.put("url", Constant.dist + "appointmentSuccess?id="+ techActivity.getId() + "&openId=" + signUp.getOpenId());
 					JSONObject data = new JSONObject();
 					JSONObject first = new JSONObject();
-					first.put("value", "您报名的活动即将开始，请准时入场");
+					first.put("value", "您报名的活动即将开始，请准时签到入场");
 					data.put("first", first);
 					JSONObject keyword1 = new JSONObject();
 					keyword1.put("value", signUp.getName());
 					data.put("keyword1", keyword1);
 
 					JSONObject keyword2 = new JSONObject();
-					keyword2.put("value", signUp.getPhoneNumber());
+					keyword2.put("value", techActivity.getHeadline());
 					data.put("keyword2", keyword2);
-
-					JSONObject keyword3 = new JSONObject();
-					keyword3.put("value", techActivity.getHeadline());
-					data.put("keyword3", keyword3);
 
 					SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-					JSONObject keyword4 = new JSONObject();
-					keyword4.put("value", sf.format(techActivity.getStartTime()));
-					data.put("keyword4", keyword4);
+					JSONObject keyword3 = new JSONObject();
+					keyword3.put("value", sf.format(techActivity.getStartTime()));
+					data.put("keyword3", keyword3);
+
 
 					jsonObject.put("data", data);
 
@@ -84,7 +94,6 @@ public class TechJob implements Job {
 
 				});
 			});
-
 		}
 	}
 

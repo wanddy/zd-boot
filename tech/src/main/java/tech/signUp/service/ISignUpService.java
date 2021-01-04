@@ -2,6 +2,7 @@ package tech.signUp.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import commons.api.vo.Result;
+import commons.auth.vo.LoginUser;
 import tech.signUp.entity.SignUp;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -38,6 +39,8 @@ public interface ISignUpService extends IService<SignUp> {
      * @param signUp
      * @return
      */
-    List<SignUp> getList(SignUp signUp);
+    List<SignUp> getList(SignUp signUp, LoginUser user);
 
+
+    Result<?> queryList(SignUp sign);
 }

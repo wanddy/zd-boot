@@ -228,4 +228,7 @@ public interface UserService {
      * @return
      */
     List<User> queryByDepIds(List<String> departIds, String username);
+
+    void updateByOpenId(User user);
+
 }

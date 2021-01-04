@@ -60,12 +60,18 @@ public class TechActivity implements Serializable {
 	@Excel(name = "活动地点", width = 15)
     @ApiModelProperty(value = "活动地点")
     private java.lang.String place;
-	/**活动时间*/
-	@Excel(name = "活动时间", width = 15, format = "yyyy-MM-dd")
-	@JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd")
-    @DateTimeFormat(pattern="yyyy-MM-dd")
-    @ApiModelProperty(value = "活动时间")
+	/**活动报名截止时间*/
+    @JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private java.util.Date time;
+    /**活动签到开始时间*/
+    @JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private java.util.Date signTime;
+    /**活动签到截止时间*/
+    @JsonFormat(timezone = "GMT+8",pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private java.util.Date signEndTime;
 	/**活动联系方式*/
 	@Excel(name = "活动联系方式", width = 15)
     @ApiModelProperty(value = "活动联系方式")
@@ -120,4 +126,27 @@ public class TechActivity implements Serializable {
 
     @TableField(exist = false)
     private SignUp signUp;
+
+    /**
+     * 审批人
+     */
+    @Dict(dictTable = "sys_user", dicText = "realname", dicCode = "username")
+    private String deptCode;
+
+    /**
+     * 审批部门code
+     */
+    private String departCode;
+
+    /**
+     * 报名需要审批
+     */
+    @Dict(dicCode = "audit_type")
+    private String auditType;
+
+    /**
+     * 活动是否需要审批
+     */
+    @Dict(dicCode = "audit_type")
+    private String auditTech;
 }

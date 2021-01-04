@@ -700,4 +700,9 @@ public class UserServiceImpl implements UserService {
         return userMapper.queryByDepIds(departIds, username);
     }
 
+    @Override
+    public void updateByOpenId(User user) {
+        userMapper.updateById(user);
+    }
+
 }

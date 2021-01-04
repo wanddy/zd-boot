@@ -133,6 +133,7 @@ public class SecurityConfig {
         filterChainDefinitionMap.put("/signUp/signUp/updateByStatus", "anon");
         filterChainDefinitionMap.put("/wx/**", "anon");
         filterChainDefinitionMap.put("/wxUser/wxUser/queryByOpenId", "anon");
+        filterChainDefinitionMap.put("/sys/common/upload", "anon");
 
 //        // 添加自己的过滤器并且取名为jwt
         Map<String, Filter> filterMap = new HashMap<String, Filter>(1);

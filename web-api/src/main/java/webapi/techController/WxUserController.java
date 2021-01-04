@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * @Description: wx_user
@@ -107,6 +108,13 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
             JSONObject first = new JSONObject();
             first.put("value", "您的账号已被启用，可以报名参加活动！");
             data.put("first", first);
+            JSONObject keyword1 = new JSONObject();
+            keyword1.put("value", "已启用");
+            data.put("keyword1", keyword1);
+
+            JSONObject keyword2 = new JSONObject();
+            keyword2.put("value", new Date());
+            data.put("keyword2", keyword2);
             jsonObject.put("data", data);
             net.sf.json.JSONObject jsonObject1 = CommonUtil.httpsRequest(Constant.templateUrl + CommonUtil.accessToken.getAccessToken(), "POST", JSONObject.toJSONString(jsonObject));
 
@@ -120,18 +128,21 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
             JSONObject jsonObject = new JSONObject();
             //用户openid
             jsonObject.put("touser", wxUser.getOpenId());
-            jsonObject.put("template_id", Constant.templateId5);
+            jsonObject.put("template_id", Constant.templateId4);
             JSONObject data = new JSONObject();
             JSONObject first = new JSONObject();
-            first.put("value", "您的账号已被禁用，禁用期间不允许报名活动，如有问题请联系管理员！");
+            first.put("value", "您的账号已被禁用"+wxUser.getEndDay()+"天"+"，禁用期间不允许报名活动，如有问题请联系管理员！");
             data.put("first", first);
             JSONObject keyword1 = new JSONObject();
-            keyword1.put("value", wxUser.getEndDay()+"天");
+            keyword1.put("value", "已禁用");
             data.put("keyword1", keyword1);
 
             JSONObject keyword2 = new JSONObject();
-            keyword2.put("value", "管理员禁用！");
+            keyword2.put("value", new Date());
             data.put("keyword2", keyword2);
+            JSONObject remark = new JSONObject();
+            remark.put("value","管理员禁用！");
+            data.put("remark",remark);
             jsonObject.put("data", data);
             net.sf.json.JSONObject jsonObject1 = CommonUtil.httpsRequest(Constant.templateUrl + CommonUtil.accessToken.getAccessToken(), "POST", JSONObject.toJSONString(jsonObject));
 
@@ -224,6 +235,31 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
         return super.importExcel(request, response, WxUser.class);
+    }
+
+    /**
+     * 创建微信菜单
+     *
+     * @return
+     */
+    @RequestMapping(value = "/saveMenu", method = RequestMethod.POST)
+    public Result<?> saveMenu() {
+
+        return Result.ok("创建成功！");
+    }
+
+    /**
+     * 查询微信菜单
+     *
+     * @return
+     */
+    @RequestMapping(value = "/getMenu", method = RequestMethod.GET)
+    public Result<?> getMenu() {
+        net.sf.json.JSONObject jsonObject = CommonUtil.httpsRequest("https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token=" +
+                CommonUtil.accessToken.getAccessToken(), Constant.get, null);
+        String menu = jsonObject.get("selfmenu_info").toString();
+
+        return Result.ok(menu);
     }
 
 }

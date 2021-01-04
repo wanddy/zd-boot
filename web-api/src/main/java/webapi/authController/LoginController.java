@@ -1,5 +1,6 @@
 package webapi.authController;
 
+import auth.domain.user.mapper.UserMapper;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyuncs.exceptions.ClientException;
@@ -69,7 +70,8 @@ public class LoginController {
     @ApiOperation("登录接口")
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public Result<JSONObject> login(@RequestParam String username,
-                                    @RequestParam String password) {
+                                    @RequestParam String password,
+                                    @RequestParam(value = "openId",required = false) String openId) {
         Result<JSONObject> result = new Result<>();
 //        String username = sysLoginModel.getUsername();
 //        String password = sysLoginModel.getPassword();
@@ -100,7 +102,11 @@ public class LoginController {
         //用户登录信息
         userInfo(User, result);
         sysBaseAPI.addLog("用户名: " + username + ",登录成功！", CommonConstant.LOG_TYPE_1, null);
-
+//        验证第三方登录
+        if(oConvertUtils.isNotEmpty(openId) && oConvertUtils.isEmpty(User.getThirdId())){
+            User.setThirdId(openId);
+            userService.updateByOpenId(User);
+        }
         return result;
     }
 

@@ -23,6 +23,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -30,6 +31,7 @@ import tech.signUp.entity.SignUp;
 import tech.signUp.service.ISignUpService;
 import tech.techActivity.entity.TechActivity;
 import tech.techActivity.entity.TechField;
+import tech.techActivity.entity.TechFieldCope;
 import tech.techActivity.service.ITechActivityService;
 import tech.techActivity.service.ITechFieldService;
 import tech.wxUser.entity.WxUser;
@@ -37,9 +39,7 @@ import tech.wxUser.service.WxUserService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -95,6 +95,7 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
                 signUp.setUnitName("*" + signUp.getUnitName() + "*");
             }
         }
+        String sql = QueryGenerator.installAuthJdbc(SignUp.class);
         QueryWrapper<SignUp> queryWrapper = QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
         Page<SignUp> page = new Page<SignUp>(pageNo, pageSize);
         IPage<SignUp> pageList = signUpService.page(page, queryWrapper);
@@ -120,8 +121,10 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
     @AutoLog(value = "报名表-添加")
     @ApiOperation(value = "报名表-添加", notes = "报名表-添加")
     @PostMapping(value = "/add")
-    public Result<?> add(SignUp signUp) {
+    public Result<?> add(@RequestBody SignUp signUp) {
+//        统计标记
         signUp.setType("1");
+//        签到状态
         signUp.setStatus("2");
         WxUser wxUser = wxUserService.getOne(new QueryWrapper<WxUser>()
                 .eq("open_id", signUp.getOpenId()).eq("status", 2));
@@ -129,18 +132,36 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
             return Result.error("您的账号已被禁用，暂时不允许报名活动！");
         }
         TechActivity techActivity = techActivityService.getById(signUp.getTechName());
-        if (techActivity != null && techActivity.getStatus() != null && !techActivity.getStatus().equals("1")) {
-            if (techActivity.getPeopleMax() != null && !techActivity.getPeopleMax().equals("0")) {
-                int techName = signUpService.count(new QueryWrapper<SignUp>()
-                        .eq("tech_name", techActivity.getId()));
-                if (techName >= Integer.parseInt(techActivity.getPeopleMax())) {
-                    return Result.error("报名人数已上限，不允许报名！");
-                }
-            }
+        if(techActivity.getTime()!=null && techActivity.getTime().compareTo(new Date())<=0){
+            return Result.error("该活动报名时间已过，不允许报名该活动");
+        }
+//        需要审批
+        if("1".equals(techActivity.getAuditType())){
+            signUp.setAudit("1");
+//            设置审批负责人
+            signUp.setCreateBy(techActivity.getDeptCode());
+        }else{
+            signUp.setCreateBy(null);
+        }
+        if (techActivity.getStatus() != null && !techActivity.getStatus().equals("1")) {
+//            if (techActivity.getPeopleMax() != null && !techActivity.getPeopleMax().equals("0")) {
+//                int techName = signUpService.count(new QueryWrapper<SignUp>()
+//                        .eq("tech_name", techActivity.getId()));
+//                if (techName >= Integer.parseInt(techActivity.getPeopleMax())) {
+//                    return Result.error("报名人数已上限，不允许报名！");
+//                }
+//            }
             signUp.setSysOrgCode(techActivity.getSysOrgCode());
+
             if (signUp.getTechFieldList() != null && signUp.getTechFieldList().size() > 0) {
-                signUp.getTechFieldList().sort(Comparator.comparing(TechField::getSort).reversed());
-                JSONArray jsonArray = JSONArray.fromObject(signUp.getTechFieldList());
+                signUp.getTechFieldList().sort(Comparator.comparing(TechField::getSort));
+                ArrayList<TechFieldCope> techFieldCopes = new ArrayList<>();
+                signUp.getTechFieldList().forEach(techField -> {
+                    TechFieldCope techFieldCope = new TechFieldCope();
+                    BeanUtils.copyProperties(techField,techFieldCope);
+                    techFieldCopes.add(techFieldCope);
+                });
+                JSONArray jsonArray = JSONArray.fromObject(techFieldCopes);
                 signUp.setFieldTest(jsonArray.toString());
             }
             WxUser wxUser1 = wxUserService.getOne(new QueryWrapper<WxUser>()
@@ -152,6 +173,8 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
                 wxUser1.setPhoneNumber(signUp.getPhoneNumber());
                 wxUserService.updateById(wxUser1);
             }
+//            LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+
             return signUpService.add(signUp);
         }
         return Result.error("该活动不是未开始活动，不允许报名");
@@ -168,6 +191,14 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
     @PutMapping(value = "/edit")
     public Result<?> edit(@RequestBody SignUp signUp) {
         SignUp sign = signUpService.getById(signUp.getId());
+        TechActivity techActivity = techActivityService.getById(sign.getTechName());
+        if (techActivity.getPeopleMax() != null && !techActivity.getPeopleMax().equals("0")) {
+            int techName = signUpService.count(new QueryWrapper<SignUp>()
+                    .eq("tech_name", techActivity.getId()).eq("audit",2));
+            if (techName >= Integer.parseInt(techActivity.getPeopleMax())) {
+                return Result.error("审批通过人数已上限，不允许审批通过！");
+            }
+        }
         if (Integer.parseInt(sign.getAudit()) > 1) {
             return Result.error("该用户已审批过，不能重复审批！");
         }
@@ -243,7 +274,7 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
                             List<DictItem> dictItemList = sysDictItemService.list(new QueryWrapper<DictItem>().eq("dict_id", dict.getId()));
                             if (oConvertUtils.isNotEmpty(techField.getTest()) && techField.getFieldType().equals("3")) {
                                 List<DictItem> itemList = dictItemList.stream().filter(dictItem -> dictItem.getItemValue().equals(techField.getTest())).collect(Collectors.toList());
-                                techField.setTest(itemList.get(0).getItemText());
+                                techField.setItemText(itemList.get(0).getItemText());
                             }
                             techField.setDictList(dictItemList);
                         }
@@ -273,13 +304,12 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
      */
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(HttpServletRequest request, SignUp signUp) {
-
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         ModelAndView mv = new ModelAndView(new JeecgEntityExcelView());
-        List<SignUp> pageList = signUpService.getList(signUp);
+        List<SignUp> pageList = signUpService.getList(signUp,user);
         //导出文件名称
         mv.addObject(NormalExcelConstants.FILE_NAME, "报名表");
         mv.addObject(NormalExcelConstants.CLASS, SignUp.class);
-        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
         mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("报名表报表", "导出人:" + user.getRealname(), "报名表"));
         mv.addObject(NormalExcelConstants.DATA_LIST, pageList);
         return mv;
@@ -324,12 +354,30 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
      * @return
      */
     @GetMapping("/getList")
-    public Result<?> getList(TechActivity techActivity, HttpServletRequest req) {
-        techActivity.setStatus(1L);
-        techActivity.setAudit("2");
-        Result<?> result = techActivityController.queryPageList(techActivity, 1, 100, req);
-        return result;
+    public Result<?> getList(SignUp sign) {
+        return signUpService.queryList(sign);
     }
+
+    @AutoLog(value = "报名表-分页列表查询")
+    @ApiOperation(value = "报名表-分页列表查询", notes = "报名表-分页列表查询")
+    @GetMapping(value = "/queryList")
+    public Result<?> queryList(SignUp signUp,
+                                   HttpServletRequest req) {
+        if (signUp != null) {
+            if (oConvertUtils.isNotEmpty(signUp.getName())) {
+                signUp.setName("*" + signUp.getName() + "*");
+            }
+            if (oConvertUtils.isNotEmpty(signUp.getUnitName())) {
+                signUp.setUnitName("*" + signUp.getUnitName() + "*");
+            }
+        }
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        QueryWrapper<SignUp> queryWrapper = QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
+        queryWrapper.like("create_by",user.getUsername()).or().isNull("create_by");
+        List<SignUp> pageList = signUpService.list(queryWrapper);
+        return Result.ok(pageList);
+    }
+
 
     /**
      * 根据活动id查询报名用户信息
@@ -385,11 +433,15 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
     @PutMapping(value = "/updateByStatus")
     public Result<?> updateByStatus(@RequestBody SignUp signUp) {
         SignUp sign = signUpService.getById(signUp.getId());
-        if (sign.getStatus().equals("2")) {
-            return Result.error("您已签到，不能重复签到！");
+        TechActivity techActivity = techActivityService.getById(sign.getTechName());
+        if(techActivity.getSignTime().compareTo(new Date())<=0 && techActivity.getSignEndTime().compareTo(new Date())>=0){
+            if (("1").equals(sign.getStatus())) {
+                return Result.error("您已签到，不能重复签到！");
+            }
+            signUpService.updateById(signUp);
+            return Result.ok("签到成功！");
         }
-        signUpService.updateById(signUp);
-        return Result.ok("签到成功！");
+        return Result.error("签到失败,不在签到时间内！");
     }
 
 }

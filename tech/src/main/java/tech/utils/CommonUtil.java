@@ -1,6 +1,10 @@
 package tech.utils;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import net.sf.json.JSONObject;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,8 @@ import tech.techActivity.service.ITechActivityService;
 import tech.techActivity.service.impl.TechActivityServiceImpl;
 import tech.techActivity.vo.AccessToken;
 import tech.techActivity.vo.BasicSysCodeService;
+import tech.wxUser.entity.WxUser;
+import tech.wxUser.service.WxUserService;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -27,12 +33,15 @@ import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.URL;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 定时获取微信token
  */
 @Component
-public class CommonUtil implements ServletContextAware {
+public class CommonUtil implements Job {
     private static Logger log = LoggerFactory.getLogger(CommonUtil.class);
 
     public static AccessToken accessToken = null;
@@ -42,7 +51,6 @@ public class CommonUtil implements ServletContextAware {
      *
      * @return
      */
-    @Scheduled(fixedRate = 1000 * 7200)
     private static AccessToken getAccessToken() {
         String requestUrl = Constant.accessTokenUrl+"appid="+
                 Constant.appId+"&secret="+
@@ -61,6 +69,7 @@ public class CommonUtil implements ServletContextAware {
                 log.error(e.getMessage());
             }
         }
+
         return accessToken;
     }
 
@@ -126,8 +135,14 @@ public class CommonUtil implements ServletContextAware {
         return jsonObject;
     }
 
+//    @Override
+//    public void setServletContext(ServletContext servletContext) {
+//
+//    }
+
+
     @Override
-    public void setServletContext(ServletContext servletContext) {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
         getAccessToken();
     }
 }
