@@ -87,21 +87,38 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                    @RequestParam(name = "techName", required = false) String techName,
                                    HttpServletRequest req) {
-        if (signUp != null) {
+//        if (signUp != null) {
+//            if (oConvertUtils.isNotEmpty(signUp.getName())) {
+//                signUp.setName("*" + signUp.getName() + "*");
+//            }
+//            if (oConvertUtils.isNotEmpty(signUp.getUnitName())) {
+//                signUp.setUnitName("*" + signUp.getUnitName() + "*");
+//            }
+//        }
+        String sql = QueryGenerator.installAuthJdbc(SignUp.class);
+//        QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
+        QueryWrapper<SignUp> queryWrapper = new QueryWrapper<>();
+        if(signUp!=null){
             if (oConvertUtils.isNotEmpty(signUp.getName())) {
-                signUp.setName("*" + signUp.getName() + "*");
+                queryWrapper.like("name",signUp.getName());
             }
             if (oConvertUtils.isNotEmpty(signUp.getUnitName())) {
-                signUp.setUnitName("*" + signUp.getUnitName() + "*");
+                queryWrapper.like("unit_name",signUp.getUnitName());
+            }
+            if(oConvertUtils.isEmpty(signUp.getAudit()) || (("1".equals(signUp.getAudit())))){
+                queryWrapper.eq("audit",1);
+            }else if(("3").equals(signUp.getAudit())){
+                queryWrapper.in("audit",2,3);
+            }else if(("4").equals(signUp.getAudit())){
+                queryWrapper.isNull("audit");
             }
         }
-        String sql = QueryGenerator.installAuthJdbc(SignUp.class);
-        QueryWrapper<SignUp> queryWrapper = QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        queryWrapper.and(qw->qw.like("create_by", user.getUsername()).or().isNull("create_by"));
         Page<SignUp> page = new Page<SignUp>(pageNo, pageSize);
         IPage<SignUp> pageList = signUpService.page(page, queryWrapper);
         if (pageList.getRecords() != null && pageList.getRecords().size() > 0) {
             pageList.getRecords().forEach(signUp1 -> {
-//				List<TechField> techFields = techFieldService.list(new QueryWrapper<TechField>().eq("tech_id", signUp1.getTechName()));
                 if (oConvertUtils.isNotEmpty(signUp1.getFieldTest())) {
                     JSONArray jsonArray = JSONArray.fromObject(signUp1.getFieldTest());
                     List<TechField> fields = JSONObject.parseArray(jsonArray.toString(), TechField.class);
@@ -126,6 +143,12 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
         signUp.setType("1");
 //        签到状态
         signUp.setStatus("2");
+        WxUser open_id = wxUserService.getOne(new QueryWrapper<WxUser>()
+                .eq("open_id", signUp.getOpenId())
+                .eq("del_flag",0));
+        if(oConvertUtils.isEmpty(open_id)){
+            return Result.error("您未关注该服务号号，请先关注才能报名！");
+        }
         WxUser wxUser = wxUserService.getOne(new QueryWrapper<WxUser>()
                 .eq("open_id", signUp.getOpenId()).eq("status", 2));
         if (wxUser != null) {
@@ -143,14 +166,15 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
         }else{
             signUp.setCreateBy(null);
         }
-        if (techActivity.getStatus() != null && !techActivity.getStatus().equals("1")) {
-//            if (techActivity.getPeopleMax() != null && !techActivity.getPeopleMax().equals("0")) {
-//                int techName = signUpService.count(new QueryWrapper<SignUp>()
-//                        .eq("tech_name", techActivity.getId()));
-//                if (techName >= Integer.parseInt(techActivity.getPeopleMax())) {
-//                    return Result.error("报名人数已上限，不允许报名！");
-//                }
-//            }
+        if (techActivity.getStatus() != null && !(("1").equals(techActivity.getStatus().toString()))) {
+            if (techActivity.getPeopleMax() != null && !(("0").equals(techActivity.getPeopleMax()))) {
+                int techName = signUpService.count(new QueryWrapper<SignUp>()
+                        .eq("tech_name", techActivity.getId())
+                        .and(q->q.eq("audit",2).or().isNull("audit")));
+                if (techName >= Integer.parseInt(techActivity.getPeopleMax())) {
+                    return Result.error("报名人数已上限，不允许报名！");
+                }
+            }
             signUp.setSysOrgCode(techActivity.getSysOrgCode());
 
             if (signUp.getTechFieldList() != null && signUp.getTechFieldList().size() > 0) {
@@ -371,11 +395,24 @@ public class SignUpController extends JeecgController<SignUp, ISignUpService> {
                 signUp.setUnitName("*" + signUp.getUnitName() + "*");
             }
         }
-        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-        QueryWrapper<SignUp> queryWrapper = QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
-        queryWrapper.like("create_by",user.getUsername()).or().isNull("create_by");
-        List<SignUp> pageList = signUpService.list(queryWrapper);
-        return Result.ok(pageList);
+        List<TechActivity> list = techActivityService.list(new QueryWrapper<TechActivity>()
+                .select("id")
+                .gt("end_time", new Date()));
+        if(list!=null && list.size()>0){
+            List<String> list1 = list.stream().map(l -> l.getId()).collect(Collectors.toList());
+            LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+            QueryWrapper<SignUp> queryWrapper = QueryGenerator.initQueryWrapper(signUp, req.getParameterMap());
+            queryWrapper.in("tech_name",list1);
+            queryWrapper.and(qw->qw.like("create_by", user.getUsername()).or().isNull("create_by"));
+            List<SignUp> pageList = signUpService.list(queryWrapper);
+            if(pageList!=null && pageList.size()>0){
+                pageList.forEach(signUp1 -> {
+                    signUp1.setChecked(false);
+                });
+                return Result.ok(pageList);
+            }
+        }
+       return Result.error("没有需要审批的数据");
     }
 
 

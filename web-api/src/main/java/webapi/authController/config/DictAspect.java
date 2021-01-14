@@ -2,6 +2,7 @@ package webapi.authController.config;
 
 import auth.domain.dict.service.ISysDictService;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.dynamic.datasource.toolkit.DynamicDataSourceContextHolder;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +19,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import smartform.common.util.DBCutConstants;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -104,9 +106,18 @@ public class DictAspect {
                             String table = field.getAnnotation(Dict.class).dictTable();
                             String key = String.valueOf(item.get(field.getName()));
 
+//                            动态切换数据源
+                            String[] split = table.split(",");
+
+                            if(split.length>1){
+                                table = split[1];
+                            }
+
+                            DynamicDataSourceContextHolder.push(split[0]);
                             //翻译字典值对应的txt
                             String textValue = translateDictValue(code, text, table, key);
 
+//                            DynamicDataSourceContextHolder.poll();
                             log.debug(" 字典Val : " + textValue);
                             log.debug(" __翻译字典字段__ " + field.getName() + CommonConstant.DICT_TEXT_SUFFIX + "： " + textValue);
                             item.put(field.getName() + CommonConstant.DICT_TEXT_SUFFIX, textValue);

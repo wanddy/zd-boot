@@ -16,4 +16,9 @@ import java.util.Map;
 
 @SpringBootTest
 class WebApiApplicationTests {
+
+    @Test
+    private void getList(){
+        List<String> list = new ArrayList<>();
+    }
 }

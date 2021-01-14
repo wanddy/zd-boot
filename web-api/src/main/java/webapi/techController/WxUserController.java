@@ -58,11 +58,11 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
                                    @RequestParam(name = "pageSize", defaultValue = "10") Integer pageSize,
                                    HttpServletRequest req) {
         wxUser.setDelFlag("0");
-        if(oConvertUtils.isNotEmpty(wxUser.getNickname())){
-            wxUser.setNickname("*"+wxUser.getNickname()+"*");
+        if (oConvertUtils.isNotEmpty(wxUser.getNickname())) {
+            wxUser.setNickname("*" + wxUser.getNickname() + "*");
         }
-        if(oConvertUtils.isNotEmpty(wxUser.getCity())){
-            wxUser.setCity("*"+wxUser.getCity()+"*");
+        if (oConvertUtils.isNotEmpty(wxUser.getCity())) {
+            wxUser.setCity("*" + wxUser.getCity() + "*");
         }
         QueryWrapper<WxUser> queryWrapper = QueryGenerator.initQueryWrapper(wxUser, req.getParameterMap());
         Page<WxUser> page = new Page<WxUser>(pageNo, pageSize);
@@ -131,7 +131,7 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
             jsonObject.put("template_id", Constant.templateId4);
             JSONObject data = new JSONObject();
             JSONObject first = new JSONObject();
-            first.put("value", "您的账号已被禁用"+wxUser.getEndDay()+"天"+"，禁用期间不允许报名活动，如有问题请联系管理员！");
+            first.put("value", "您的账号已被禁用" + wxUser.getEndDay() + "天" + "，禁用期间不允许报名活动，如有问题请联系管理员！");
             data.put("first", first);
             JSONObject keyword1 = new JSONObject();
             keyword1.put("value", "已禁用");
@@ -141,8 +141,8 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
             keyword2.put("value", new Date());
             data.put("keyword2", keyword2);
             JSONObject remark = new JSONObject();
-            remark.put("value","管理员禁用！");
-            data.put("remark",remark);
+            remark.put("value", "管理员禁用！");
+            data.put("remark", remark);
             jsonObject.put("data", data);
             net.sf.json.JSONObject jsonObject1 = CommonUtil.httpsRequest(Constant.templateUrl + CommonUtil.accessToken.getAccessToken(), "POST", JSONObject.toJSONString(jsonObject));
 
@@ -207,7 +207,7 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
     @ApiOperation(value = "wx_user-通过openid查询", notes = "wx_user-通过openid查询")
     @GetMapping(value = "/queryByOpenId")
     public Result<?> queryByOpenId(@RequestParam(name = "openId", required = false) String openId) {
-        WxUser wxUser = wxUserService.getOne(new QueryWrapper<WxUser>().eq("open_id",openId));
+        WxUser wxUser = wxUserService.getOne(new QueryWrapper<WxUser>().eq("open_id", openId));
         if (wxUser == null) {
             return Result.error("未找到对应数据");
         }
@@ -243,9 +243,17 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
      * @return
      */
     @RequestMapping(value = "/saveMenu", method = RequestMethod.POST)
-    public Result<?> saveMenu() {
-
-        return Result.ok("创建成功！");
+    public Result<?> saveMenu(@RequestBody JSONObject menu) {
+        Object menu1 = menu.get("menu");
+        JSONObject jsonObject1 = JSONObject.parseObject(menu1.toString());
+        String s = JSONObject.toJSONString(jsonObject1);
+        System.out.println(s);
+        net.sf.json.JSONObject jsonObject = CommonUtil.httpsRequest("https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" +
+                CommonUtil.accessToken.getAccessToken(), Constant.post, JSONObject.toJSONString(jsonObject1));
+        if (("ok").equals(jsonObject.get("errmsg"))) {
+            return Result.ok("修改成功！");
+        }
+        return Result.error("修改失败！");
     }
 
     /**
@@ -257,9 +265,7 @@ public class WxUserController extends JeecgController<WxUser, WxUserService> {
     public Result<?> getMenu() {
         net.sf.json.JSONObject jsonObject = CommonUtil.httpsRequest("https://api.weixin.qq.com/cgi-bin/get_current_selfmenu_info?access_token=" +
                 CommonUtil.accessToken.getAccessToken(), Constant.get, null);
-        String menu = jsonObject.get("selfmenu_info").toString();
-
-        return Result.ok(menu);
+        String replace = jsonObject.get("selfmenu_info").toString().replace("{\"list\":", "");
+        return Result.ok(replace.replace("]}}", "]}"));
     }
-
 }

@@ -12,7 +12,7 @@ import javax.servlet.ServletContext;
 import java.util.List;
 
 /**
- * 暂时解决解决定时任务bug
+ * 暂时解决定时任务bug
  */
 @Component
 public class QuartzUtils implements ServletContextAware {
@@ -33,7 +33,10 @@ public class QuartzUtils implements ServletContextAware {
             list.forEach(quartzJob -> {
                 try {
                     quartzJobService.editAndScheduleJob(quartzJob);
-                } catch (SchedulerException e) {
+                    if(("tech.utils.CommonUtil").equals(quartzJob.getJobClassName())){
+                        quartzJobService.execute(quartzJob);
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             });

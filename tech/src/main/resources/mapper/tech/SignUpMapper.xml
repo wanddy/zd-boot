@@ -52,7 +52,8 @@
     <select id="queryList" resultType="tech.signUp.entity.SignUp">
         SELECT
         t1.*,
-        t2.headline AS tech
+        t2.headline AS tech,
+        false as checked
         FROM
         sign_up t1
         LEFT JOIN tech_activity t2 ON t1.tech_name = t2.id
@@ -62,6 +63,8 @@
             and (t2.headline LIKE CONCAT( "%", #{sign.techName}, "%" )
             or t1.`name` LIKE CONCAT( "%", #{sign.name}, "%" ))
         </if>
+         and t2.status in (1,2)
+         and (t2.audit = 2 or t2.audit is null )
          AND (t1.create_by LIKE CONCAT( "%", #{user.username}, "%" ) OR t1.create_by IS NULL )
     </select>
 </mapper>

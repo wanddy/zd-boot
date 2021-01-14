@@ -72,7 +72,7 @@ public class SignUp implements Serializable {
 
 	/**活动名*/
     @ApiModelProperty(value = "活动名")
-    @Dict(dictTable = "tech_activity", dicText = "headline", dicCode = "id")
+    @Dict(dictTable = "smart-core,tech_activity", dicText = "headline", dicCode = "id")
     private java.lang.String techName;
 
     /**用户信息*/
@@ -106,6 +106,9 @@ public class SignUp implements Serializable {
     @Dict(dicCode = "del_flag")
     @TableLogic
     private java.lang.String delFlag;
+
+    @TableField(exist = false)
+    private Boolean checked;
 
     @TableField(exist = false)
     private List<TechField> techFieldList;

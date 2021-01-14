@@ -137,17 +137,16 @@ public class SignUpServiceImpl extends ServiceImpl<SignUpMapper, SignUp> impleme
      * @return
      */
     @Override
-
     public Result<?> batchUpdate(List<String> list, String audit) {
-        String audit1;
-        if ("2".equals(audit)) {
-            audit1 = "3";
-        } else {
-            audit1 = "2";
-        }
+//        String audit1;
+//        if ("2".equals(audit)) {
+//            audit1 = "3";
+//        } else {
+//            audit1 = "2";
+//        }
         List<SignUp> signUpList = baseMapper.selectList(
                 new QueryWrapper<SignUp>().in("id", list)
-                        .eq("audit", audit).or().eq("audit", audit1));
+                        .and(qw->qw.in("audit", 2,3).or().isNull("audit")));
         if (signUpList != null && signUpList.size() > 0) {
             return Result.error("所选的数据中有不是审批中人员，请重新选择！");
         }
